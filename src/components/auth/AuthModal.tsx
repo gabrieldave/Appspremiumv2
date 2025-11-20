@@ -60,33 +60,60 @@ export function AuthModal({ isOpen, onClose, initialMode = 'signin' }: AuthModal
       }
 
       console.log(`📤 Enviando solicitud de ${mode === 'signin' ? 'login' : 'registro'} a Supabase...`);
-      const { error } = mode === 'signin'
-        ? await signIn(email.trim(), password)
-        : await signUp(email.trim(), password);
+      
+      let result;
+      try {
+        result = mode === 'signin'
+          ? await signIn(email.trim(), password)
+          : await signUp(email.trim(), password);
+      } catch (err: any) {
+        console.error('❌ Error al llamar signIn/signUp:', err);
+        setError(`Error al procesar la solicitud: ${err?.message || 'Por favor intenta de nuevo.'}`);
+        setLoading(false);
+        return;
+      }
+
+      if (!result) {
+        console.error('❌ No se recibió respuesta de signIn/signUp');
+        setError('No se recibió respuesta del servidor. Por favor intenta de nuevo.');
+        setLoading(false);
+        return;
+      }
+
+      const { error } = result;
 
       if (error) {
-        // Mensajes de error más específicos
-        let errorMessage = error.message;
+        // Obtener el mensaje de error de forma segura
+        const errorMessage = error?.message || error?.toString() || 'Error desconocido';
+        const errorStatus = (error as any)?.status;
+        const errorName = error?.name || 'Error';
         
         console.error(`❌ Error de ${mode}:`, {
-          message: error.message,
-          status: (error as any).status,
-          name: error.name,
+          error: error,
+          message: errorMessage,
+          status: errorStatus,
+          name: errorName,
+          rawError: JSON.stringify(error, Object.getOwnPropertyNames(error)),
         });
         
-        if (error.message.includes('Invalid login credentials')) {
-          errorMessage = 'Credenciales inválidas. Verifica tu email y contraseña. Si es un usuario nuevo, regístrate primero.';
-        } else if (error.message.includes('Email not confirmed')) {
-          errorMessage = 'Por favor verifica tu email antes de iniciar sesión. Revisa tu bandeja de entrada.';
-        } else if (error.message.includes('User already registered')) {
-          errorMessage = 'Este email ya está registrado. Inicia sesión en su lugar.';
-        } else if (error.message.includes('Password should be at least')) {
-          errorMessage = 'La contraseña debe tener al menos 6 caracteres.';
-        } else if ((error as any).status === 400) {
-          errorMessage = 'Solicitud inválida. Verifica que el email y contraseña sean correctos.';
+        // Mensajes de error más específicos
+        let userFriendlyMessage = errorMessage;
+        
+        if (errorMessage.includes('Invalid login credentials')) {
+          userFriendlyMessage = 'Credenciales inválidas. Verifica tu email y contraseña. Si es un usuario nuevo, regístrate primero.';
+        } else if (errorMessage.includes('Email not confirmed')) {
+          userFriendlyMessage = 'Por favor verifica tu email antes de iniciar sesión. Revisa tu bandeja de entrada.';
+        } else if (errorMessage.includes('User already registered')) {
+          userFriendlyMessage = 'Este email ya está registrado. Inicia sesión en su lugar.';
+        } else if (errorMessage.includes('Password should be at least')) {
+          userFriendlyMessage = 'La contraseña debe tener al menos 6 caracteres.';
+        } else if (errorStatus === 400) {
+          userFriendlyMessage = 'Solicitud inválida. Verifica que el email y contraseña sean correctos.';
+        } else if (errorMessage === 'Error desconocido' || !errorMessage) {
+          userFriendlyMessage = 'Ocurrió un error al intentar iniciar sesión. Por favor intenta de nuevo.';
         }
         
-        setError(errorMessage);
+        setError(userFriendlyMessage);
       } else {
         if (mode === 'signup') {
           console.log('✅ Registro exitoso');
