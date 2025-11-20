@@ -10,7 +10,7 @@ export interface StripeProduct {
 
 export const stripeProducts: StripeProduct[] = [
   {
-    priceId: 'price_1SRFznG2B99hBCya4vFOfnbY',
+    priceId: 'price_1SVe48G2B99hBCyagkJXbc6w',
     name: 'Señales VIP Trading Sin Perdidas',
     description: 'Acceso completo a señales VIP de trading con estrategias probadas para maximizar ganancias y minimizar pérdidas.',
     mode: 'subscription',

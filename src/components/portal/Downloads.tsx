@@ -43,15 +43,31 @@ export function Downloads() {
         return;
       }
 
+      // Obtener productos del usuario con sus códigos
       const { data: userProductsData } = await supabase
         .from('user_products')
-        .select('product_id')
+        .select(`
+          product_id,
+          mt4_products(code, name, is_premium)
+        `)
         .eq('user_id', user.id);
 
       const productIds = userProductsData?.map((up) => up.product_id) || [];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const userProductCodes = userProductsData?.map((up: any) => up.mt4_products?.code).filter(Boolean) || [];
       setUserProducts(productIds);
 
-      const { data, error } = await supabase
+      // Verificar si el usuario es admin para ver todas las descargas
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('is_admin')
+        .eq('id', user.id)
+        .single();
+
+      const isAdmin = profileData?.is_admin === true;
+
+      // Obtener todas las descargas activas
+      const { data: allDownloads, error } = await supabase
         .from('mt4_downloads')
         .select(`
           *,
@@ -60,8 +76,22 @@ export function Downloads() {
         .eq('is_active', true)
         .order('release_date', { ascending: false });
 
-      if (!error && data) {
-        setDownloads(data as any);
+      // Filtrar descargas según los productos del usuario
+      // Si es admin, ve todas. Si no, solo ve descargas de productos que tiene
+      let filteredDownloads = allDownloads || [];
+      
+      if (!isAdmin && allDownloads) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        filteredDownloads = allDownloads.filter((download: any) => {
+          const productCode = download.mt4_products?.code;
+          // Solo mostrar descargas de productos que el usuario tiene asignados
+          return userProductCodes.includes(productCode);
+        });
+      }
+
+      if (!error) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        setDownloads(filteredDownloads as any);
       }
     } catch (error) {
       console.error('Error fetching downloads:', error);

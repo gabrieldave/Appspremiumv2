@@ -46,7 +46,7 @@ export function Support() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-slate-900 mb-2">Soporte VIP</h1>
         <p className="text-slate-600">
-          Estamos aquí para ayudarte. Contáctanos a través de cualquiera de nuestros canales.
+          Estamos aquí para ayudarte. Contáctanos a través de cualquiera de nuestros canales de soporte y redes sociales.
         </p>
       </div>
 
@@ -74,7 +74,7 @@ export function Support() {
                     <Star className="w-5 h-5 fill-yellow-300 text-yellow-300" />
                   </div>
                   <p className="text-green-100">
-                    Soporte técnico, ventas de cursos y teléfono personal - Disponible 24/7
+                    Soporte técnico // Ventas de cursos // Teléfono personal - Disponible 24/7
                   </p>
                 </div>
               </div>
@@ -86,7 +86,7 @@ export function Support() {
 
       {regularLinks.length > 0 && (
         <div>
-          <h2 className="text-xl font-bold text-slate-900 mb-4">Otros Canales</h2>
+          <h2 className="text-xl font-bold text-slate-900 mb-4">Canales de Comunidad y Redes Sociales</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {regularLinks.map((link) => {
               const Icon = getIcon(link.icon_name);

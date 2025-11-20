@@ -53,7 +53,8 @@ export function PortalLayout({ children, currentPage, onNavigate, accessLevel }:
             <div className="hidden md:flex items-center gap-2">
               {navigation.map((item) => {
                 const Icon = item.icon;
-                const hasAccess = canAccessItem(item);
+                // Apps Premium: Todos pueden ver (pero no descargar sin suscripción)
+                const hasAccess = item.id === 'apps' ? true : canAccessItem(item);
                 return (
                   <button
                     key={item.id}

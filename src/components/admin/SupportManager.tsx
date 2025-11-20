@@ -21,6 +21,10 @@ const commonIcons = [
   'Mail',
   'Phone',
   'Globe',
+  'Linkedin',
+  'Star',
+  'Users',
+  'MessageSquare',
 ];
 
 export function SupportManager() {

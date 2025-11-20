@@ -7,15 +7,15 @@ import { AuthModal } from '../components/auth/AuthModal';
 
 export function LandingPage() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signup');
+  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
 
   const handleGetStarted = () => {
-    setAuthMode('signup');
+    setAuthMode('signin');
     setAuthModalOpen(true);
   };
 
   const handleSubscribe = () => {
-    setAuthMode('signup');
+    setAuthMode('signin');
     setAuthModalOpen(true);
   };
 
