@@ -24,17 +24,90 @@ export function AuthModal({ isOpen, onClose, initialMode = 'signin' }: AuthModal
     setLoading(true);
 
     try {
+      // Validación básica
+      if (!email || !password) {
+        setError('Por favor completa todos los campos');
+        setLoading(false);
+        return;
+      }
+
+      if (mode === 'signup' && password.length < 6) {
+        setError('La contraseña debe tener al menos 6 caracteres');
+        setLoading(false);
+        return;
+      }
+
+      // Verificar configuración de Supabase
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      console.log(`🔐 Intentando ${mode === 'signin' ? 'login' : 'registro'}:`, {
+        email: email.trim(),
+        supabaseUrl: supabaseUrl ? '✅ Configurada' : '❌ Faltante',
+        supabaseAnonKey: supabaseAnonKey ? '✅ Configurada' : '❌ Faltante',
+      });
+
+      if (!supabaseUrl || !supabaseAnonKey) {
+        const missing = [];
+        if (!supabaseUrl) missing.push('VITE_SUPABASE_URL');
+        if (!supabaseAnonKey) missing.push('VITE_SUPABASE_ANON_KEY');
+        
+        const errorMsg = `Error de configuración: Faltan variables de entorno (${missing.join(', ')}). Por favor verifica la configuración en Vercel.`;
+        console.error('❌', errorMsg);
+        setError(errorMsg);
+        setLoading(false);
+        return;
+      }
+
+      console.log(`📤 Enviando solicitud de ${mode === 'signin' ? 'login' : 'registro'} a Supabase...`);
       const { error } = mode === 'signin'
-        ? await signIn(email, password)
-        : await signUp(email, password);
+        ? await signIn(email.trim(), password)
+        : await signUp(email.trim(), password);
 
       if (error) {
-        setError(error.message);
+        // Mensajes de error más específicos
+        let errorMessage = error.message;
+        
+        console.error(`❌ Error de ${mode}:`, {
+          message: error.message,
+          status: (error as any).status,
+          name: error.name,
+        });
+        
+        if (error.message.includes('Invalid login credentials')) {
+          errorMessage = 'Credenciales inválidas. Verifica tu email y contraseña. Si es un usuario nuevo, regístrate primero.';
+        } else if (error.message.includes('Email not confirmed')) {
+          errorMessage = 'Por favor verifica tu email antes de iniciar sesión. Revisa tu bandeja de entrada.';
+        } else if (error.message.includes('User already registered')) {
+          errorMessage = 'Este email ya está registrado. Inicia sesión en su lugar.';
+        } else if (error.message.includes('Password should be at least')) {
+          errorMessage = 'La contraseña debe tener al menos 6 caracteres.';
+        } else if ((error as any).status === 400) {
+          errorMessage = 'Solicitud inválida. Verifica que el email y contraseña sean correctos.';
+        }
+        
+        setError(errorMessage);
       } else {
-        onClose();
+        if (mode === 'signup') {
+          console.log('✅ Registro exitoso');
+          setError('');
+          setError('Cuenta creada. Por favor verifica tu email antes de iniciar sesión.');
+          setTimeout(() => {
+            setMode('signin');
+            setError('');
+          }, 3000);
+        } else {
+          console.log('✅ Login exitoso');
+          onClose();
+        }
       }
-    } catch (err) {
-      setError('Ocurrió un error. Por favor intenta de nuevo.');
+    } catch (err: any) {
+      console.error('❌ Error inesperado:', {
+        error: err,
+        message: err?.message,
+        stack: err?.stack,
+      });
+      setError(`Error inesperado: ${err?.message || 'Por favor intenta de nuevo.'}`);
     } finally {
       setLoading(false);
     }

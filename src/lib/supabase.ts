@@ -3,8 +3,30 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+// Diagnóstico de configuración (siempre)
+console.log('🔍 Diagnóstico de Supabase:');
+console.log('URL:', supabaseUrl ? `✅ Configurada (${supabaseUrl.substring(0, 30)}...)` : '❌ Faltante');
+console.log('Anon Key:', supabaseAnonKey ? `✅ Configurada (${supabaseAnonKey.substring(0, 20)}...)` : '❌ Faltante');
+
+if (supabaseUrl && !supabaseUrl.includes('supabase.co')) {
+  console.warn('⚠️ La URL de Supabase parece incorrecta:', supabaseUrl);
+}
+
+if (supabaseUrl && supabaseAnonKey) {
+  console.log('✅ Supabase configurado correctamente');
+} else {
+  console.error('❌ Supabase NO está configurado correctamente');
+}
+
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
+  const missing = [];
+  if (!supabaseUrl) missing.push('VITE_SUPABASE_URL');
+  if (!supabaseAnonKey) missing.push('VITE_SUPABASE_ANON_KEY');
+  
+  throw new Error(
+    `Faltan variables de entorno de Supabase: ${missing.join(', ')}\n` +
+    'Por favor configura estas variables en tu archivo .env o en Vercel.'
+  );
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {

@@ -124,6 +124,30 @@ Cada vez que hagas `git push`:
 
 ## Solución de Problemas
 
+### Error 400: "Invalid login credentials" ⚠️ **COMÚN DESPUÉS DEL DEPLOY**
+
+**Síntomas**:
+- Error en la UI: "Invalid login credentials"
+- Error 400 en la consola del navegador
+- No puedes iniciar sesión
+
+**Causa más común**: Variables de entorno no configuradas o incorrectas en Vercel.
+
+**Solución**:
+1. Ve a Vercel Dashboard → Tu Proyecto → Settings → Environment Variables
+2. Verifica que tengas estas 3 variables configuradas:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
+   - `VITE_STRIPE_PUBLISHABLE_KEY`
+3. **IMPORTANTE**: Después de agregar/modificar variables, haz un **Redeploy**:
+   - Ve a Deployments → 3 puntos (...) → Redeploy
+   - Espera 2-3 minutos
+4. Abre la consola del navegador (F12) y busca:
+   - Mensaje "✅ Supabase configurado correctamente"
+   - Si ves "❌ Faltante", las variables no están configuradas
+
+**Para más detalles**: Ver `SOLUCION_ERROR_400_LOGIN.md`
+
 ### Error: "Cannot find module"
 - Verifica que `node_modules` esté en `.gitignore`
 - Vercel instalará las dependencias automáticamente
@@ -131,6 +155,7 @@ Cada vez que hagas `git push`:
 ### Error: "Environment variable not found"
 - Verifica que las variables empiecen con `VITE_`
 - Asegúrate de haberlas configurado en Vercel Dashboard
+- **Haz un Redeploy** después de agregar variables
 
 ### Error: "Build failed"
 - Revisa los logs de build en Vercel

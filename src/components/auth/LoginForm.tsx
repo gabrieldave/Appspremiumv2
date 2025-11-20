@@ -19,19 +19,97 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
     setMessage(null);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
+      // Validación básica
+      if (!email || !password) {
+        setMessage({ type: 'error', text: 'Por favor completa todos los campos' });
+        setLoading(false);
+        return;
+      }
+
+      // Verificar configuración de Supabase antes de intentar login
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      console.log('🔐 Intentando login:', {
+        email: email.trim(),
+        supabaseUrl: supabaseUrl ? '✅ Configurada' : '❌ Faltante',
+        supabaseAnonKey: supabaseAnonKey ? '✅ Configurada' : '❌ Faltante',
+      });
+
+      if (!supabaseUrl || !supabaseAnonKey) {
+        const missing = [];
+        if (!supabaseUrl) missing.push('VITE_SUPABASE_URL');
+        if (!supabaseAnonKey) missing.push('VITE_SUPABASE_ANON_KEY');
+        
+        const errorMsg = `Error de configuración: Faltan variables de entorno (${missing.join(', ')}). Por favor verifica la configuración en Vercel.`;
+        console.error('❌', errorMsg);
+        setMessage({ type: 'error', text: errorMsg });
+        setLoading(false);
+        return;
+      }
+
+      // Verificar que Supabase esté configurado
+      if (!supabase) {
+        const errorMsg = 'Error de configuración. Por favor contacta al administrador.';
+        console.error('❌', errorMsg);
+        setMessage({ type: 'error', text: errorMsg });
+        setLoading(false);
+        return;
+      }
+
+      console.log('📤 Enviando solicitud de login a Supabase...');
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
         password,
       });
 
       if (error) {
-        setMessage({ type: 'error', text: error.message });
-      } else {
+        // Mensajes de error más específicos
+        let errorMessage = error.message;
+        
+        console.error('❌ Error de autenticación:', {
+          message: error.message,
+          status: error.status,
+          name: error.name,
+        });
+        
+        if (error.message.includes('Invalid login credentials')) {
+          errorMessage = 'Credenciales inválidas. Verifica tu email y contraseña. Si es un usuario nuevo, regístrate primero.';
+        } else if (error.message.includes('Email not confirmed')) {
+          errorMessage = 'Por favor verifica tu email antes de iniciar sesión. Revisa tu bandeja de entrada.';
+        } else if (error.message.includes('Too many requests')) {
+          errorMessage = 'Demasiados intentos. Por favor espera unos minutos antes de intentar de nuevo.';
+        } else if (error.message.includes('User not found')) {
+          errorMessage = 'Usuario no encontrado. ¿Tienes una cuenta? Regístrate primero.';
+        } else if (error.status === 400) {
+          errorMessage = 'Solicitud inválida. Verifica que el email y contraseña sean correctos.';
+        }
+        
+        setMessage({ type: 'error', text: errorMessage });
+      } else if (data?.user) {
+        console.log('✅ Login exitoso:', {
+          userId: data.user.id,
+          email: data.user.email,
+        });
         setMessage({ type: 'success', text: '¡Sesión iniciada exitosamente!' });
-        onSuccess?.();
+        // Pequeño delay para mostrar el mensaje de éxito
+        setTimeout(() => {
+          onSuccess?.();
+        }, 500);
+      } else {
+        console.warn('⚠️ Login sin error pero sin datos de usuario');
+        setMessage({ type: 'error', text: 'No se pudo iniciar sesión. Por favor intenta de nuevo.' });
       }
-    } catch (error) {
-      setMessage({ type: 'error', text: 'Ocurrió un error inesperado' });
+    } catch (error: any) {
+      console.error('❌ Error inesperado durante login:', {
+        error,
+        message: error?.message,
+        stack: error?.stack,
+      });
+      setMessage({ 
+        type: 'error', 
+        text: `Error inesperado: ${error?.message || 'Por favor intenta de nuevo.'}` 
+      });
     } finally {
       setLoading(false);
     }
