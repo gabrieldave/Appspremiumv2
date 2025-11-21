@@ -15,8 +15,9 @@ const stripe = new Stripe(stripeSecret, {
 function corsResponse(body: string | object | null, status = 200) {
   const headers = {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS, GET',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Max-Age': '86400',
   };
 
   // For 204 No Content, don't include Content-Type or body
@@ -34,10 +35,12 @@ function corsResponse(body: string | object | null, status = 200) {
 }
 
 Deno.serve(async (req) => {
+  // Manejar preflight CORS
+  if (req.method === 'OPTIONS') {
+    return corsResponse({}, 204);
+  }
+
   try {
-    if (req.method === 'OPTIONS') {
-      return corsResponse({}, 204);
-    }
 
     if (req.method !== 'POST') {
       return corsResponse({ error: 'Method not allowed' }, 405);

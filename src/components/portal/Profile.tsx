@@ -83,10 +83,15 @@ export function Profile() {
         }
       );
 
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Error desconocido' }));
+        throw new Error(errorData.error || `Error ${response.status}: ${response.statusText}`);
+      }
+
       const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Error al crear la sesión de pago');
+      if (!data.url) {
+        throw new Error('No se recibió URL de checkout');
       }
 
       window.location.href = data.url;

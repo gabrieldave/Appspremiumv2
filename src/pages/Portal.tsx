@@ -39,26 +39,29 @@ function AccessDeniedMessage() {
 export function Portal() {
   const [currentPage, setCurrentPage] = useState<PageType>('profile');
   const accessLevel = useAccessControl();
-  const navigate = useNavigate();
 
   useEffect(() => {
     if (!accessLevel.loading) {
+      // Si no tiene productos asignados (alpha lite o premium), llevarlo a Apps Premium
       if (!accessLevel.hasAnyProduct) {
-        setCurrentPage('profile');
+        setCurrentPage('apps');
       } else if (accessLevel.canAccessDownloads && currentPage === 'profile') {
         setCurrentPage('downloads');
       }
     }
-  }, [accessLevel.loading, accessLevel.hasAnyProduct, accessLevel.canAccessDownloads]);
+  }, [accessLevel.loading, accessLevel.hasAnyProduct, accessLevel.canAccessDownloads, currentPage]);
 
   const handleNavigate = (page: PageType) => {
+    // Todos pueden acceder a apps (para ver la oferta)
+    if (page === 'apps') {
+      setCurrentPage(page);
+      return;
+    }
+    // Para otras páginas, verificar acceso
     if (!accessLevel.hasAnyProduct && page !== 'profile') {
       return;
     }
     if (page === 'downloads' && !accessLevel.canAccessDownloads) {
-      return;
-    }
-    if (page === 'apps' && !accessLevel.canAccessApps) {
       return;
     }
     if (page === 'support' && !accessLevel.canAccessSupport) {
