@@ -121,7 +121,27 @@ function AppDetail({ app, onBack }: AppDetailProps) {
   const canDownload = profile?.subscription_status === 'active' || profile?.is_admin === true;
   
   const getYouTubeEmbedUrl = (url: string) => {
-    const videoId = url.match(/(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/)?.[1];
+    // Manejar diferentes formatos de YouTube:
+    // - youtube.com/watch?v=VIDEO_ID
+    // - youtube.com/embed/VIDEO_ID
+    // - youtube.com/v/VIDEO_ID
+    // - youtu.be/VIDEO_ID
+    // - youtube.com/shorts/VIDEO_ID (YouTube Shorts)
+    // - youtube.com/shorts/VIDEO_ID?feature=share
+    let videoId: string | null = null;
+    
+    // Patrón para YouTube Shorts: /shorts/VIDEO_ID
+    const shortsMatch = url.match(/(?:youtube\.com\/shorts\/)([^"&?/\s]{11})/);
+    if (shortsMatch) {
+      videoId = shortsMatch[1];
+    } else {
+      // Patrón para otros formatos de YouTube
+      const standardMatch = url.match(/(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/);
+      if (standardMatch) {
+        videoId = standardMatch[1];
+      }
+    }
+    
     return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
   };
 
@@ -141,11 +161,12 @@ function AppDetail({ app, onBack }: AppDetailProps) {
         {embedUrl ? (
           <div className="aspect-video bg-slate-900">
             <iframe
-              src={embedUrl}
+              src={`${embedUrl}?rel=0&modestbranding=1`}
               title={app.title}
               className="w-full h-full"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen
+              frameBorder="0"
             />
           </div>
         ) : app.image_url ? (
