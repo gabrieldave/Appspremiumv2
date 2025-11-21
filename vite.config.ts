@@ -20,7 +20,7 @@ export default defineConfig({
         },
       },
     },
-    // Aumentar el límite de warning a 600 KB (el bundle principal puede ser grande)
-    chunkSizeWarningLimit: 600,
+    // Aumentar el límite de warning a 1000 KB para evitar warnings innecesarios
+    chunkSizeWarningLimit: 1000,
   },
 });
