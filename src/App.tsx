@@ -39,12 +39,16 @@ function AppContent() {
           }
         />
         <Route
-          path="/portal/*"
+          path="/portal"
           element={
             <ProtectedRoute>
               <Portal />
             </ProtectedRoute>
           }
+        />
+        <Route
+          path="/portal/*"
+          element={<Navigate to="/portal" replace />}
         />
         <Route
           path="/admin"

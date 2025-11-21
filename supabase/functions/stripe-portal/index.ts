@@ -128,7 +128,7 @@ Deno.serve(async (req: Request) => {
 
     const session = await stripe.billingPortal.sessions.create({
       customer: customerId,
-      return_url: `${req.headers.get('origin') || 'http://localhost:5173'}/portal/profile`,
+      return_url: `${req.headers.get('origin') || 'http://localhost:5173'}/portal`,
     });
 
     return new Response(
