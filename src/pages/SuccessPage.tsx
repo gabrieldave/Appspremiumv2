@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { CheckCircle, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
@@ -8,11 +8,7 @@ export function SuccessPage() {
   const [isChecking, setIsChecking] = useState(true);
   const [isAssigning, setIsAssigning] = useState(false);
 
-  useEffect(() => {
-    checkAndAssignProduct();
-  }, []);
-
-  async function assignAlphaLite(userId: string) {
+  const assignAlphaLite = useCallback(async (userId: string) => {
     try {
       // Buscar el producto Alpha Lite
       const { data: product } = await supabase
@@ -56,9 +52,9 @@ export function SuccessPage() {
       console.error('Error en assignAlphaLite:', error);
       return false;
     }
-  }
+  }, []);
 
-  async function checkAndAssignProduct() {
+  const checkAndAssignProduct = useCallback(async () => {
     try {
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       
@@ -98,7 +94,11 @@ export function SuccessPage() {
       setIsChecking(false);
       setIsAssigning(false);
     }
-  }
+  }, [navigate, assignAlphaLite]);
+
+  useEffect(() => {
+    checkAndAssignProduct();
+  }, [checkAndAssignProduct]);
 
   function startRedirectTimer() {
     setTimeout(() => {
