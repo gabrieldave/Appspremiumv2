@@ -192,6 +192,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { error } = await supabase.auth.updateUser({
         password: newPassword,
       });
+      
+      if (!error && user?.email) {
+        // Enviar email de confirmación de cambio de contraseña
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session) {
+            const now = new Date();
+            const changeDate = now.toLocaleDateString('es-MX', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            });
+            const changeTime = now.toLocaleTimeString('es-MX', {
+              hour: '2-digit',
+              minute: '2-digit',
+            });
+            
+            // Llamar a la Edge Function para enviar email
+            fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-password-change-email`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${session.access_token}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                email: user.email,
+                changeDate,
+                changeTime,
+              }),
+            }).catch((emailError) => {
+              console.error('Error enviando email de cambio de contraseña:', emailError);
+              // No bloquear el cambio de contraseña si falla el email
+            });
+          }
+        } catch (emailError) {
+          console.error('Error al llamar Edge Function de cambio de contraseña:', emailError);
+          // No bloquear el cambio de contraseña si falla el email
+        }
+      }
+      
       return { error };
     } catch (error) {
       return { error: error as Error };

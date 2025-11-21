@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recibo de Compra - Todos Somos Traders</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f1f5f9;">
+  <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #f1f5f9; padding: 20px;">
+    <tr>
+      <td align="center" style="padding: 20px 0;">
+        <table role="presentation" style="width: 100%; max-width: 600px; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); overflow: hidden;">
+          <!-- Header con Logo -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #2563eb 0%, #06b6d4 100%); padding: 40px 30px; text-align: center;">
+              <img src="https://vdgbqkokslhmzdvedimv.supabase.co/storage/v1/object/public/logos/Logo.jpg" alt="Todos Somos Traders" style="max-width: 120px; height: auto; border-radius: 8px; margin-bottom: 20px;">
+              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                ¡Gracias por tu Compra!
+              </h1>
+            </td>
+          </tr>
+
+          <!-- Contenido Principal -->
+          <tr>
+            <td style="padding: 40px 30px;">
+              <h2 style="margin: 0 0 20px 0; color: #1e293b; font-size: 24px; font-weight: 600;">
+                Recibo de Compra
+              </h2>
+              
+              <p style="margin: 0 0 20px 0; color: #475569; font-size: 16px; line-height: 1.6;">
+                Hola,
+              </p>
+              
+              <p style="margin: 0 0 30px 0; color: #475569; font-size: 16px; line-height: 1.6;">
+                Gracias por tu compra en <strong style="color: #2563eb;">Todos Somos Traders</strong>. Tu pago ha sido procesado exitosamente y tu suscripción está activa.
+              </p>
+
+              <!-- Detalles de la Compra -->
+              <div style="background-color: #f8fafc; border: 2px solid #e2e8f0; padding: 25px; margin: 30px 0; border-radius: 8px;">
+                <h3 style="margin: 0 0 20px 0; color: #1e293b; font-size: 18px; font-weight: 600;">
+                  📋 Detalles de tu Compra
+                </h3>
+                <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                  <tr>
+                    <td style="padding: 10px 0; color: #64748b; font-size: 14px; font-weight: 600; width: 160px;">Producto:</td>
+                    <td style="padding: 10px 0; color: #1e293b; font-size: 14px;">{{ .ProductName }}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 10px 0; color: #64748b; font-size: 14px; font-weight: 600;">Tipo:</td>
+                    <td style="padding: 10px 0; color: #1e293b; font-size: 14px;">{{ .PurchaseType }}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 10px 0; color: #64748b; font-size: 14px; font-weight: 600;">Monto:</td>
+                    <td style="padding: 10px 0; color: #1e293b; font-size: 16px; font-weight: 600;">{{ .Amount }} {{ .Currency }}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 10px 0; color: #64748b; font-size: 14px; font-weight: 600;">Fecha de Compra:</td>
+                    <td style="padding: 10px 0; color: #1e293b; font-size: 14px;">{{ .PurchaseDate }}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 10px 0; color: #64748b; font-size: 14px; font-weight: 600;">ID de Transacción:</td>
+                    <td style="padding: 10px 0; color: #1e293b; font-size: 14px; font-family: monospace;">{{ .TransactionId }}</td>
+                  </tr>
+                </table>
+              </div>
+
+              <!-- Información de Suscripción -->
+              {{ if .IsSubscription }}
+              <div style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 2px solid #86efac; padding: 25px; margin: 30px 0; border-radius: 8px;">
+                <h3 style="margin: 0 0 20px 0; color: #166534; font-size: 18px; font-weight: 600;">
+                  ⏰ Información de tu Suscripción
+                </h3>
+                <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                  <tr>
+                    <td style="padding: 10px 0; color: #166534; font-size: 14px; font-weight: 600; width: 180px;">Estado:</td>
+                    <td style="padding: 10px 0; color: #166534; font-size: 14px; font-weight: 600;">✅ Activa</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 10px 0; color: #166534; font-size: 14px; font-weight: 600;">Fecha de Inicio:</td>
+                    <td style="padding: 10px 0; color: #166534; font-size: 14px;">{{ .SubscriptionStartDate }}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 10px 0; color: #166534; font-size: 14px; font-weight: 600;">Próxima Renovación:</td>
+                    <td style="padding: 10px 0; color: #166534; font-size: 14px; font-weight: 600;">{{ .SubscriptionEndDate }}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 10px 0; color: #166534; font-size: 14px; font-weight: 600;">Próximo Pago:</td>
+                    <td style="padding: 10px 0; color: #166534; font-size: 14px;">{{ .NextPaymentDate }}</td>
+                  </tr>
+                </table>
+                <div style="margin-top: 20px; padding: 15px; background-color: #ffffff; border-radius: 6px; border-left: 4px solid #22c55e;">
+                  <p style="margin: 0; color: #166534; font-size: 14px; line-height: 1.6;">
+                    <strong>💡 Recordatorio:</strong> Tu suscripción se renovará automáticamente el {{ .SubscriptionEndDate }}. Puedes gestionar tu suscripción desde tu perfil en cualquier momento.
+                  </p>
+                </div>
+              </div>
+              {{ end }}
+
+              <!-- Beneficios Activos -->
+              <div style="background-color: #f8fafc; border-left: 4px solid #06b6d4; padding: 20px; margin: 30px 0; border-radius: 4px;">
+                <p style="margin: 0 0 15px 0; color: #1e293b; font-size: 16px; font-weight: 600;">
+                  ✨ Acceso Activo a:
+                </p>
+                <ul style="margin: 10px 0 0 0; padding-left: 20px; color: #475569; font-size: 14px; line-height: 1.8;">
+                  <li><strong>Apps Premium:</strong> Acceso completo a todas nuestras herramientas profesionales</li>
+                  <li><strong>Descargas Ilimitadas:</strong> Descarga todas las versiones de nuestros sistemas MT4</li>
+                  <li><strong>Actualizaciones Automáticas:</strong> Recibe todas las mejoras y nuevas funcionalidades</li>
+                  <li><strong>Soporte VIP 24/7:</strong> Atención prioritaria por WhatsApp y canales exclusivos</li>
+                  <li><strong>Señales de Noticias Telegram:</strong> Acceso al canal exclusivo con análisis en tiempo real</li>
+                </ul>
+              </div>
+
+              <!-- Botón de Acceso -->
+              <table role="presentation" style="width: 100%; margin: 30px 0;">
+                <tr>
+                  <td align="center">
+                    <a href="{{ .SiteURL }}/portal" style="display: inline-block; padding: 16px 32px; background: linear-gradient(135deg, #2563eb 0%, #06b6d4 100%); color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 6px rgba(37, 99, 235, 0.3); transition: all 0.3s ease;">
+                      Acceder a mi Portal Premium
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin: 30px 0 0 0; color: #64748b; font-size: 14px; line-height: 1.6;">
+                Si tienes alguna pregunta sobre tu compra o suscripción, no dudes en contactarnos. Estamos aquí para ayudarte.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #f8fafc; padding: 30px; text-align: center; border-top: 1px solid #e2e8f0;">
+              <p style="margin: 0 0 10px 0; color: #1e293b; font-size: 18px; font-weight: 600;">
+                Todos Somos Traders
+              </p>
+              <p style="margin: 0 0 20px 0; color: #64748b; font-size: 14px;">
+                Portal Premium de Herramientas de Trading Profesional
+              </p>
+              
+              <p style="margin: 20px 0 0 0; color: #94a3b8; font-size: 12px;">
+                © {{ .Year }} Todos Somos Traders. Todos los derechos reservados.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+
