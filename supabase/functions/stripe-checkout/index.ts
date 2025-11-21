@@ -99,6 +99,20 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Debug: Log todas las variables de entorno al inicio (solo en POST)
+    if (req.method === 'POST') {
+      const allEnvVars = Deno.env.toObject();
+      const stripeVars = Object.keys(allEnvVars).filter(k => k.toUpperCase().includes('STRIPE'));
+      console.log('🔍 Variables de entorno que contienen STRIPE:', stripeVars);
+      console.log('🔍 Total de variables de entorno:', Object.keys(allEnvVars).length);
+      console.log('🔍 STRIPE_SECRET_KEY existe?', Deno.env.get('STRIPE_SECRET_KEY') ? 'SÍ' : 'NO');
+      if (Deno.env.get('STRIPE_SECRET_KEY')) {
+        const key = Deno.env.get('STRIPE_SECRET_KEY')!;
+        console.log('🔍 STRIPE_SECRET_KEY longitud:', key.length);
+        console.log('🔍 STRIPE_SECRET_KEY primeros 10 chars:', key.substring(0, 10));
+        console.log('🔍 STRIPE_SECRET_KEY últimos 10 chars:', key.substring(key.length - 10));
+      }
+    }
 
     if (req.method !== 'POST') {
       return corsResponse({ error: 'Method not allowed' }, 405);
