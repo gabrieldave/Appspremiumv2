@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { SignupForm } from '../components/auth/SignupForm';
 import { useNavigate } from 'react-router-dom';
@@ -7,7 +6,7 @@ export function SignupPage() {
   const navigate = useNavigate();
 
   const handleSignupSuccess = () => {
-    navigate('/dashboard');
+    navigate('/portal');
   };
 
   return (

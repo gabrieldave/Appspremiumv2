@@ -6,7 +6,7 @@ type FormData = {
   title: string;
   description: string;
   image_url: string;
-  video_url: string;
+  video_url: string | null;
   download_url: string;
   category: string;
   sort_order: number;
@@ -16,13 +16,15 @@ type FormData = {
 export function AppsManager() {
   const [apps, setApps] = useState<PremiumApp[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     title: '',
     description: '',
     image_url: '',
-    video_url: '',
+    video_url: null,
     download_url: '',
     category: '',
     sort_order: 0,
@@ -40,7 +42,10 @@ export function AppsManager() {
       .select('*')
       .order('sort_order', { ascending: true });
 
-    if (!error && data) {
+    if (error) {
+      console.error('Error fetching apps:', error);
+      setMessage({ type: 'error', text: `Error al cargar apps: ${error.message}` });
+    } else if (data) {
       setApps(data);
     }
     setLoading(false);
@@ -48,36 +53,67 @@ export function AppsManager() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSaving(true);
+    setMessage(null);
 
-    if (editingId) {
-      const { error } = await supabase
-        .from('premium_apps')
-        .update(formData)
-        .eq('id', editingId);
+    try {
+      // Preparar datos para insertar/actualizar (convertir string vacío a null para video_url)
+      const dataToSave = {
+        ...formData,
+        video_url: formData.video_url && formData.video_url.trim() !== '' ? formData.video_url.trim() : null,
+      };
 
-      if (!error) {
-        await fetchApps();
-        resetForm();
+      if (editingId) {
+        const { error } = await supabase
+          .from('premium_apps')
+          .update(dataToSave)
+          .eq('id', editingId);
+
+        if (error) {
+          console.error('Error updating app:', error);
+          setMessage({ type: 'error', text: `Error al actualizar: ${error.message}` });
+        } else {
+          setMessage({ type: 'success', text: 'App actualizada exitosamente' });
+          await fetchApps();
+          setTimeout(() => {
+            resetForm();
+            setMessage(null);
+          }, 1500);
+        }
+      } else {
+        const { error } = await supabase
+          .from('premium_apps')
+          .insert([dataToSave]);
+
+        if (error) {
+          console.error('Error creating app:', error);
+          setMessage({ type: 'error', text: `Error al crear: ${error.message}` });
+        } else {
+          setMessage({ type: 'success', text: 'App creada exitosamente' });
+          await fetchApps();
+          setTimeout(() => {
+            resetForm();
+            setMessage(null);
+          }, 1500);
+        }
       }
-    } else {
-      const { error } = await supabase
-        .from('premium_apps')
-        .insert([formData]);
-
-      if (!error) {
-        await fetchApps();
-        resetForm();
-      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Por favor intenta de nuevo';
+      setMessage({ type: 'error', text: `Error inesperado: ${errorMessage}` });
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleEdit = (app: PremiumApp) => {
     setEditingId(app.id);
+    setMessage(null);
     setFormData({
       title: app.title,
       description: app.description,
       image_url: app.image_url,
-      video_url: app.video_url || '',
+      video_url: app.video_url || null,
       download_url: app.download_url,
       category: app.category,
       sort_order: app.sort_order,
@@ -93,8 +129,14 @@ export function AppsManager() {
         .delete()
         .eq('id', id);
 
-      if (!error) {
+      if (error) {
+        console.error('Error deleting app:', error);
+        setMessage({ type: 'error', text: `Error al eliminar: ${error.message}` });
+        setTimeout(() => setMessage(null), 3000);
+      } else {
+        setMessage({ type: 'success', text: 'App eliminada exitosamente' });
         await fetchApps();
+        setTimeout(() => setMessage(null), 2000);
       }
     }
   };
@@ -102,11 +144,12 @@ export function AppsManager() {
   const resetForm = () => {
     setEditingId(null);
     setShowForm(false);
+    setMessage(null);
     setFormData({
       title: '',
       description: '',
       image_url: '',
-      video_url: '',
+      video_url: null,
       download_url: '',
       category: '',
       sort_order: 0,
@@ -135,6 +178,16 @@ export function AppsManager() {
         </button>
       </div>
 
+      {message && !showForm && (
+        <div className={`p-4 rounded-lg mb-6 ${
+          message.type === 'error' 
+            ? 'bg-red-50 text-red-700 border border-red-200' 
+            : 'bg-green-50 text-green-700 border border-green-200'
+        }`}>
+          {message.text}
+        </div>
+      )}
+
       {showForm && (
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border-2 border-orange-200">
           <div className="flex justify-between items-center mb-4">
@@ -150,6 +203,15 @@ export function AppsManager() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            {message && (
+              <div className={`p-4 rounded-lg ${
+                message.type === 'error' 
+                  ? 'bg-red-50 text-red-700 border border-red-200' 
+                  : 'bg-green-50 text-green-700 border border-green-200'
+              }`}>
+                {message.text}
+              </div>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
@@ -239,8 +301,8 @@ export function AppsManager() {
               </label>
               <input
                 type="url"
-                value={formData.video_url}
-                onChange={(e) => setFormData({ ...formData, video_url: e.target.value })}
+                value={formData.video_url || ''}
+                onChange={(e) => setFormData({ ...formData, video_url: e.target.value || null })}
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                 placeholder="https://www.youtube.com/watch?v=..."
               />
@@ -282,10 +344,20 @@ Características:
             <div className="flex gap-3">
               <button
                 type="submit"
-                className="flex items-center gap-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-6 py-2 rounded-lg font-semibold transition-all"
+                disabled={saving}
+                className="flex items-center gap-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-6 py-2 rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Save className="w-5 h-5" />
-                {editingId ? 'Actualizar' : 'Guardar'}
+                {saving ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Guardando...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-5 h-5" />
+                    {editingId ? 'Actualizar' : 'Guardar'}
+                  </>
+                )}
               </button>
               <button
                 type="button"

@@ -7,7 +7,7 @@ export function LoginPage() {
   const navigate = useNavigate();
 
   const handleLoginSuccess = () => {
-    navigate('/dashboard');
+    navigate('/portal');
   };
 
   return (
