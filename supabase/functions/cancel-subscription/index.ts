@@ -89,10 +89,19 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Si no tiene stripe_customer_id, solo actualizar el estado en la base de datos
     if (!userProfile.stripe_customer_id) {
+      await supabase
+        .from('profiles')
+        .update({ subscription_status: 'inactive' })
+        .eq('id', userId);
+
       return new Response(
-        JSON.stringify({ error: 'User has no Stripe customer ID' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ 
+          success: true, 
+          message: 'Subscription status updated to inactive (user had no Stripe customer ID)' 
+        }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
