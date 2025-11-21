@@ -39,7 +39,7 @@ function AppContent() {
           }
         />
         <Route
-          path="/portal"
+          path="/portal/*"
           element={
             <ProtectedRoute>
               <Portal />

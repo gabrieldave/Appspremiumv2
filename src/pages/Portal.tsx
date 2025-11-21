@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { PortalLayout } from '../components/portal/PortalLayout';
 import { Downloads } from '../components/portal/Downloads';
 import { PremiumApps } from '../components/portal/PremiumApps';
@@ -37,9 +37,28 @@ function AccessDeniedMessage() {
 }
 
 export function Portal() {
+  const location = useLocation();
   const [currentPage, setCurrentPage] = useState<PageType>('profile');
   const [hasInitialRedirect, setHasInitialRedirect] = useState(false);
   const accessLevel = useAccessControl();
+
+  // Leer la ruta de la URL para determinar qué página mostrar
+  useEffect(() => {
+    const path = location.pathname;
+    if (path === '/portal/profile' || path === '/portal/profile/') {
+      setCurrentPage('profile');
+      setHasInitialRedirect(true);
+    } else if (path === '/portal/downloads' || path === '/portal/downloads/') {
+      setCurrentPage('downloads');
+      setHasInitialRedirect(true);
+    } else if (path === '/portal/apps' || path === '/portal/apps/') {
+      setCurrentPage('apps');
+      setHasInitialRedirect(true);
+    } else if (path === '/portal/support' || path === '/portal/support/') {
+      setCurrentPage('support');
+      setHasInitialRedirect(true);
+    }
+  }, [location.pathname]);
 
   useEffect(() => {
     // Solo hacer redirección automática en la carga inicial, no cuando el usuario navega manualmente
@@ -56,10 +75,13 @@ export function Portal() {
     }
   }, [accessLevel.loading, accessLevel.hasAnyProduct, accessLevel.canAccessDownloads, hasInitialRedirect, currentPage]);
 
+  const navigate = useNavigate();
+
   const handleNavigate = (page: PageType) => {
     // Todos pueden acceder a apps y a su perfil
     if (page === 'apps' || page === 'profile') {
       setCurrentPage(page);
+      navigate(`/portal/${page}`);
       return;
     }
     // Para otras páginas, verificar acceso
@@ -70,6 +92,7 @@ export function Portal() {
       return;
     }
     setCurrentPage(page);
+    navigate(`/portal/${page}`);
   };
 
   const renderPage = () => {
