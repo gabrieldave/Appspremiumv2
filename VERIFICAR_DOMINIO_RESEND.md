@@ -56,11 +56,59 @@ Para usar `noreply@todossomostraders.com` como remitente, necesitas verificar tu
    - Las funciones leerán automáticamente la nueva variable
    - Pero puedes redesplegarlas para asegurarte
 
+## 💡 Recomendaciones: ¿Crear Otra Cuenta o Usar el Dominio de Prueba?
+
+### ❌ NO Recomendado: Crear Otra Cuenta de Resend
+
+**Razones:**
+- Más complejo de gestionar (dos cuentas, dos API keys)
+- Cada cuenta tiene su propio límite gratuito (100 emails/día)
+- Más difícil de mantener y monitorear
+- No resuelve el problema de tener que pagar por dominios adicionales
+
+### ✅ Opción 1: Usar el Dominio de Prueba (RECOMENDADO para Desarrollo/Producción Pequeña)
+
+**Ventajas:**
+- ✅ **Gratis** - Sin costos adicionales
+- ✅ **Funciona inmediatamente** - Ya está configurado
+- ✅ **Sin límites de dominio** - Puedes usarlo en múltiples proyectos
+- ✅ **Suficiente para la mayoría de casos** - Los correos llegan correctamente
+
+**Desventajas:**
+- El remitente será `onboarding@resend.dev` en lugar de `noreply@todossomostraders.com`
+- Puede tener límites de envío según tu plan de Resend
+
+**Conclusión**: Si el volumen de emails es bajo-medio (< 3,000/mes) y no necesitas un remitente personalizado, **esta es la mejor opción**.
+
+### ✅ Opción 2: Verificar un Subdominio (RECOMENDADO para Producción Profesional)
+
+**Ventajas:**
+- ✅ Puede ser **más económico** que verificar el dominio principal
+- ✅ Remitente profesional: `noreply@mail.todossomostraders.com`
+- ✅ Mejor deliverability (menos probabilidad de spam)
+- ✅ Puedes usar el mismo dominio en múltiples proyectos con diferentes subdominios
+
+**Cómo hacerlo:**
+1. En lugar de verificar `todossomostraders.com`, verifica `mail.todossomostraders.com`
+2. O usa `noreply.todossomostraders.com` o `emails.todossomostraders.com`
+3. Configura los registros DNS para el subdominio
+4. Usa `noreply@mail.todossomostraders.com` como remitente
+
+**Conclusión**: Si necesitas un remitente profesional y el volumen es alto, esta es la mejor opción.
+
+### ✅ Opción 3: Pagar por el Dominio Adicional
+
+Solo si:
+- Necesitas absolutamente `noreply@todossomostraders.com` (sin subdominio)
+- El volumen de emails justifica el costo
+- Tienes presupuesto para ello
+
 ## 📝 Nota Importante
 
-- **Solución Temporal**: Los correos funcionan ahora con `onboarding@resend.dev`
-- **Solución Permanente**: Verifica tu dominio para usar `noreply@todossomostraders.com`
-- Los correos funcionarán en ambos casos, solo cambia el remitente
+- **Solución Temporal/Recomendada**: Los correos funcionan ahora con `onboarding@resend.dev` ✅
+- **Solución con Subdominio**: Verifica `mail.todossomostraders.com` para un remitente profesional
+- **Solución con Dominio Principal**: Verifica `todossomostraders.com` (requiere pago si ya tienes otro dominio)
+- Los correos funcionarán en todos los casos, solo cambia el remitente
 
 ## 🔍 Verificación
 
