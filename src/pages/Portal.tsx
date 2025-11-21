@@ -52,15 +52,12 @@ export function Portal() {
   }, [accessLevel.loading, accessLevel.hasAnyProduct, accessLevel.canAccessDownloads, currentPage]);
 
   const handleNavigate = (page: PageType) => {
-    // Todos pueden acceder a apps (para ver la oferta)
-    if (page === 'apps') {
+    // Todos pueden acceder a apps y a su perfil
+    if (page === 'apps' || page === 'profile') {
       setCurrentPage(page);
       return;
     }
     // Para otras páginas, verificar acceso
-    if (!accessLevel.hasAnyProduct && page !== 'profile') {
-      return;
-    }
     if (page === 'downloads' && !accessLevel.canAccessDownloads) {
       return;
     }

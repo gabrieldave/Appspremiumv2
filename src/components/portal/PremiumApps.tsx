@@ -14,16 +14,25 @@ export function PremiumApps() {
 
   const fetchApps = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('premium_apps')
-      .select('*')
-      .eq('is_active', true)
-      .order('sort_order', { ascending: true });
+    try {
+      const { data, error } = await supabase
+        .from('premium_apps')
+        .select('*')
+        .eq('is_active', true)
+        .order('sort_order', { ascending: true });
 
-    if (!error && data) {
-      setApps(data);
+      if (error) {
+        console.error('Error fetching apps:', error);
+        setApps([]);
+      } else {
+        setApps(data || []);
+      }
+    } catch (error) {
+      console.error('Exception fetching apps:', error);
+      setApps([]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   if (loading) {
