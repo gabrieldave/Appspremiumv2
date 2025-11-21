@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import { User, Mail, Key, CreditCard, CheckCircle, XCircle, Loader2, AlertCircle, Zap } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
@@ -8,7 +7,6 @@ import { useStripePrices } from '../../hooks/useStripePrices';
 export function Profile() {
   const { user, profile, updatePassword } = useAuth();
   const { prices } = useStripePrices();
-  const [searchParams, setSearchParams] = useSearchParams();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -16,25 +14,18 @@ export function Profile() {
 
   // Manejar parámetros de URL para mostrar mensajes de éxito/error
   useEffect(() => {
-    const success = searchParams.get('success');
+    const searchParams = new URLSearchParams(window.location.search);
     const canceled = searchParams.get('canceled');
     
-    if (success === 'true') {
-      setMessage({
-        type: 'success',
-        text: '¡Pago procesado exitosamente! Tu suscripción está activa. Recibirás un correo de confirmación en breve.',
-      });
-      // Limpiar el parámetro de la URL
-      setSearchParams({}, { replace: true });
-    } else if (canceled === 'true') {
+    if (canceled === 'true') {
       setMessage({
         type: 'error',
         text: 'El pago fue cancelado. Si tienes problemas, por favor contacta a soporte.',
       });
       // Limpiar el parámetro de la URL
-      setSearchParams({}, { replace: true });
+      window.history.replaceState({}, '', '/portal');
     }
-  }, [searchParams, setSearchParams]);
+  }, []);
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
