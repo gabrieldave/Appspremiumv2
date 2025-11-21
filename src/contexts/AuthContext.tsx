@@ -104,6 +104,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           userId: data?.user?.id,
           email: data?.user?.email,
         });
+
+        // Enviar email de bienvenida automáticamente
+        if (data?.user) {
+          try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+              // Llamar a la Edge Function para enviar emails
+              fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-welcome-email`, {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${session.access_token}`,
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  email: data.user.email || email,
+                  userId: data.user.id,
+                  createdAt: data.user.created_at || new Date().toISOString(),
+                }),
+              }).catch((emailError) => {
+                console.error('Error enviando email de bienvenida:', emailError);
+                // No bloquear el registro si falla el email
+              });
+            }
+          } catch (emailError) {
+            console.error('Error al llamar Edge Function:', emailError);
+            // No bloquear el registro si falla el email
+          }
+        }
       }
       
       return { error };
