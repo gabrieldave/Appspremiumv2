@@ -2,21 +2,17 @@ import { useState, useEffect } from 'react';
 import { CheckCircle, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { useAuth } from '../contexts/AuthContext';
 
 export function SuccessPage() {
   const navigate = useNavigate();
-  const { profile } = useAuth();
   const [isChecking, setIsChecking] = useState(true);
   const [isAssigning, setIsAssigning] = useState(false);
 
   useEffect(() => {
     checkAndAssignProduct();
-  }, [profile]);
+  }, []);
 
-  async function assignAlphaLite() {
-    if (!profile) return false;
-
+  async function assignAlphaLite(userId: string) {
     try {
       // Buscar el producto Alpha Lite
       const { data: product } = await supabase
@@ -34,7 +30,7 @@ export function SuccessPage() {
       const { data: existing } = await supabase
         .from('user_products')
         .select('id')
-        .eq('user_id', profile.id)
+        .eq('user_id', userId)
         .eq('product_id', product.id)
         .maybeSingle();
 
@@ -44,7 +40,7 @@ export function SuccessPage() {
 
       // Asignar Alpha Lite automáticamente
       const { error } = await supabase.from('user_products').insert({
-        user_id: profile.id,
+        user_id: userId,
         product_id: product.id,
         notes: 'Asignado automáticamente tras suscripción exitosa',
       });
@@ -64,24 +60,33 @@ export function SuccessPage() {
 
   async function checkAndAssignProduct() {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        navigate('/login');
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user) {
+        console.error('Error obteniendo usuario:', userError);
+        // Esperar un poco y redirigir
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
         return;
       }
 
       // Verificar si ya tiene productos asignados
-      const { data: userProducts } = await supabase
+      const { data: userProducts, error: productsError } = await supabase
         .from('user_products')
         .select('id')
         .eq('user_id', user.id);
+
+      if (productsError) {
+        console.error('Error verificando productos:', productsError);
+      }
 
       const hasProducts = (userProducts?.length || 0) > 0;
 
       if (!hasProducts) {
         // Asignar Alpha Lite automáticamente
         setIsAssigning(true);
-        await assignAlphaLite();
+        await assignAlphaLite(user.id);
         setIsAssigning(false);
       }
 
