@@ -58,6 +58,30 @@ Para usar `noreply@todossomostraders.com` como remitente, necesitas verificar tu
 
 ## 💡 Recomendaciones: ¿Crear Otra Cuenta o Usar el Dominio de Prueba?
 
+### ✅ OPCIÓN MÁS RECOMENDADA: Reutilizar Dominio Verificado Existente
+
+**Si ya tienes un dominio verificado en Resend (como `mail.codextrader.tech`), puedes usarlo para este proyecto también.**
+
+**Ventajas:**
+- ✅ **Gratis** - No pagas por dominios adicionales
+- ✅ **Ya verificado** - Funciona inmediatamente
+- ✅ **Mismo plan de Resend** - Usas tu límite existente
+- ✅ **Fácil de gestionar** - Todo en una cuenta
+
+**Cómo hacerlo:**
+1. Usa el mismo dominio verificado que ya tienes (ej: `mail.codextrader.tech`)
+2. Configura diferentes direcciones de remitente si quieres diferenciar:
+   - Para este proyecto: `noreply@mail.codextrader.tech` o `todosomostraders@mail.codextrader.tech`
+   - Para tu otro proyecto: `codextrader@mail.codextrader.tech` o similar
+3. O simplemente usa el mismo remitente para ambos proyectos
+
+**Configuración en Supabase:**
+- Ve a Supabase Dashboard → Edge Functions → Settings → Secrets
+- Agrega: `RESEND_FROM_EMAIL` = `Todos Somos Traders <noreply@mail.codextrader.tech>`
+- O simplemente: `noreply@mail.codextrader.tech`
+
+**Nota**: Puedes usar cualquier dirección de email con tu dominio verificado, no necesitas configurarlas previamente.
+
 ### ❌ NO Recomendado: Crear Otra Cuenta de Resend
 
 **Razones:**
@@ -105,8 +129,9 @@ Solo si:
 
 ## 📝 Nota Importante
 
-- **Solución Temporal/Recomendada**: Los correos funcionan ahora con `onboarding@resend.dev` ✅
-- **Solución con Subdominio**: Verifica `mail.todossomostraders.com` para un remitente profesional
+- **✅ MEJOR OPCIÓN**: Reutilizar tu dominio verificado existente (`mail.codextrader.tech`) - **GRATIS y funciona inmediatamente**
+- **Solución Temporal**: Los correos funcionan ahora con `onboarding@resend.dev` ✅
+- **Solución con Subdominio**: Verifica `mail.todossomostraders.com` para un remitente profesional (requiere pago)
 - **Solución con Dominio Principal**: Verifica `todossomostraders.com` (requiere pago si ya tienes otro dominio)
 - Los correos funcionarán en todos los casos, solo cambia el remitente
 
