@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Edit2, Trash2, Save, X, Loader2, Trash } from 'lucide-react';
+import { Plus, Edit2, Trash2, Save, X, Loader2, Trash, RotateCcw, Users } from 'lucide-react';
 import { supabase, MT4Download, MT4Product, MT4DownloadLink } from '../../lib/supabase';
 
 type DownloadLinkForm = {
@@ -26,6 +26,8 @@ export function DownloadsManager() {
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [downloadStats, setDownloadStats] = useState<Record<string, { count: number; users: Array<{ user_id: string; email: string; downloaded_at: string }> }>>({});
+  const [showStats, setShowStats] = useState<Record<string, boolean>>({});
   const [formData, setFormData] = useState<FormData>({
     product_id: '',
     version_name: '',
@@ -62,6 +64,36 @@ export function DownloadsManager() {
 
     if (productsData) setProducts(productsData);
     if (downloadsData) setDownloads(downloadsData as MT4Download[]);
+
+    // Obtener estadísticas de descargas para cada versión
+    if (downloadsData) {
+      const stats: Record<string, { count: number; users: Array<{ user_id: string; email: string; downloaded_at: string }> }> = {};
+      
+      for (const download of downloadsData) {
+        const { data: userDownloads } = await supabase
+          .from('user_downloads')
+          .select(`
+            user_id,
+            downloaded_at,
+            profiles(email)
+          `)
+          .eq('download_id', download.id);
+
+        if (userDownloads) {
+          stats[download.id] = {
+            count: userDownloads.length,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            users: userDownloads.map((ud: any) => ({
+              user_id: ud.user_id,
+              email: (ud.profiles && !Array.isArray(ud.profiles) ? ud.profiles.email : Array.isArray(ud.profiles) && ud.profiles[0]?.email) || 'N/A',
+              downloaded_at: ud.downloaded_at,
+            })),
+          };
+        }
+      }
+      
+      setDownloadStats(stats);
+    }
 
     setLoading(false);
   };
@@ -227,6 +259,39 @@ export function DownloadsManager() {
     const newLinks = [...formData.download_links];
     newLinks[index] = { ...newLinks[index], [field]: value };
     setFormData({ ...formData, download_links: newLinks });
+  };
+
+  const handleResetUserDownload = async (downloadId: string, userId: string) => {
+    if (confirm('¿Estás seguro de resetear la descarga de este usuario? Esto le permitirá descargar nuevamente.')) {
+      const { error } = await supabase
+        .from('user_downloads')
+        .delete()
+        .eq('download_id', downloadId)
+        .eq('user_id', userId);
+
+      if (!error) {
+        await fetchData();
+        alert('Descarga reseteada exitosamente.');
+      } else {
+        alert('Error al resetear la descarga: ' + error.message);
+      }
+    }
+  };
+
+  const handleResetAllDownloads = async (downloadId: string) => {
+    if (confirm('¿Estás seguro de resetear TODAS las descargas de esta versión? Esto permitirá que todos los usuarios puedan descargar nuevamente.')) {
+      const { error } = await supabase
+        .from('user_downloads')
+        .delete()
+        .eq('download_id', downloadId);
+
+      if (!error) {
+        await fetchData();
+        alert('Todas las descargas de esta versión han sido reseteadas exitosamente.');
+      } else {
+        alert('Error al resetear las descargas: ' + error.message);
+      }
+    }
   };
 
   if (loading) {
@@ -527,21 +592,84 @@ export function DownloadsManager() {
                   {' • v'}{download.version_number}
                 </p>
                 <p className="text-slate-700 whitespace-pre-line mb-2">{download.release_notes}</p>
-                <p className="text-sm text-slate-500 break-all">
+                <p className="text-sm text-slate-500 break-all mb-3">
                   URL: {download.file_url}
                 </p>
+                
+                {/* Estadísticas de descargas */}
+                <div className="mt-4 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Users className="w-4 h-4 text-slate-600" />
+                      <span className="text-sm font-semibold text-slate-700">
+                        Descargas: {downloadStats[download.id]?.count || 0} usuario(s)
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setShowStats({ ...showStats, [download.id]: !showStats[download.id] })}
+                        className="text-xs text-blue-600 hover:text-blue-700 font-semibold"
+                      >
+                        {showStats[download.id] ? 'Ocultar' : 'Ver detalles'}
+                      </button>
+                      {downloadStats[download.id]?.count > 0 && (
+                        <button
+                          onClick={() => handleResetAllDownloads(download.id)}
+                          className="text-xs text-orange-600 hover:text-orange-700 font-semibold flex items-center gap-1"
+                          title="Resetear todas las descargas de esta versión"
+                        >
+                          <RotateCcw className="w-3 h-3" />
+                          Resetear todas
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {showStats[download.id] && downloadStats[download.id] && (
+                    <div className="mt-3 space-y-2">
+                      {downloadStats[download.id].users.length > 0 ? (
+                        downloadStats[download.id].users.map((user) => (
+                          <div
+                            key={user.user_id}
+                            className="flex items-center justify-between p-2 bg-white rounded border border-slate-200"
+                          >
+                            <div>
+                              <p className="text-sm font-medium text-slate-900">{user.email}</p>
+                              <p className="text-xs text-slate-500">
+                                Descargado: {new Date(user.downloaded_at).toLocaleString('es-ES')}
+                              </p>
+                            </div>
+                            <button
+                              onClick={() => handleResetUserDownload(download.id, user.user_id)}
+                              className="p-1.5 text-orange-600 hover:bg-orange-50 rounded transition-colors"
+                              title="Resetear descarga de este usuario"
+                            >
+                              <RotateCcw className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-slate-500 text-center py-2">
+                          No hay descargas registradas aún
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
 
-              <div className="flex gap-2 ml-4">
+              <div className="flex flex-col gap-2 ml-4">
                 <button
                   onClick={() => handleEdit(download)}
                   className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                  title="Editar descarga"
                 >
                   <Edit2 className="w-5 h-5" />
                 </button>
                 <button
                   onClick={() => handleDelete(download.id)}
                   className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  title="Eliminar descarga"
                 >
                   <Trash2 className="w-5 h-5" />
                 </button>

@@ -132,6 +132,17 @@ CREATE POLICY "Users can insert their own downloads"
     )
   );
 
+CREATE POLICY "Only admins can delete download records"
+  ON user_downloads FOR DELETE
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
+      AND profiles.is_admin = true
+    )
+  );
+
 -- Trigger para actualizar updated_at
 DO $$
 BEGIN
