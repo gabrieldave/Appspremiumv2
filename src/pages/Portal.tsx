@@ -80,10 +80,12 @@ export function Portal() {
       case 'downloads':
         return accessLevel.canAccessDownloads ? <Downloads /> : <AccessDeniedMessage />;
       case 'apps':
-        return accessLevel.canAccessApps ? <PremiumApps /> : <AccessDeniedMessage />;
+        // Todos pueden VER Apps Premium (aunque no descargar sin suscripción)
+        return <PremiumApps />;
       case 'support':
         return accessLevel.canAccessSupport ? <Support /> : <AccessDeniedMessage />;
       case 'profile':
+        // Todos los usuarios autenticados pueden acceder a su perfil
         return <Profile />;
       default:
         return <Downloads />;

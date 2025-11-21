@@ -53,8 +53,9 @@ export function PortalLayout({ children, currentPage, onNavigate, accessLevel }:
             <div className="hidden md:flex items-center gap-2">
               {navigation.map((item) => {
                 const Icon = item.icon;
-                // Apps Premium: Todos pueden ver (pero no descargar sin suscripción)
-                const hasAccess = item.id === 'apps' ? true : canAccessItem(item);
+                // Apps Premium y Perfil: Todos pueden acceder
+                // Perfil: Todos los usuarios autenticados pueden acceder
+                const hasAccess = item.id === 'apps' || item.id === 'profile' ? true : canAccessItem(item);
                 return (
                   <button
                     key={item.id}
@@ -102,11 +103,12 @@ export function PortalLayout({ children, currentPage, onNavigate, accessLevel }:
         </div>
 
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-slate-200 bg-white">
+            <div className="md:hidden border-t border-slate-200 bg-white">
             <div className="px-4 py-4 space-y-2">
               {navigation.map((item) => {
                 const Icon = item.icon;
-                const hasAccess = canAccessItem(item);
+                // Apps Premium y Perfil: Todos pueden acceder
+                const hasAccess = item.id === 'apps' || item.id === 'profile' ? true : canAccessItem(item);
                 return (
                   <button
                     key={item.id}

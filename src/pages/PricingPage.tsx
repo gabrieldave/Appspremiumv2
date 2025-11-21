@@ -7,14 +7,14 @@ export function PricingPage() {
   const { subscription } = useSubscription();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4">
+    <div className="min-h-screen bg-slate-900 py-16 px-4">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Choose Your Trading Plan
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+            Elige Tu Plan de Trading
           </h1>
-          <p className="text-xl text-gray-600">
-            Get access to premium trading signals and maximize your profits
+          <p className="text-xl text-slate-300">
+            Accede a señales premium de trading y maximiza tus ganancias
           </p>
         </div>
 
