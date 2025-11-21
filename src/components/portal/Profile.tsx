@@ -102,7 +102,7 @@ export function Profile() {
             price_id: product.price_id,
             mode: product.mode,
             success_url: `${window.location.origin}/success`,
-            cancel_url: `${window.location.origin}/portal/profile?canceled=true`,
+            cancel_url: `${window.location.origin}/portal?canceled=true`,
           }),
         }
       );

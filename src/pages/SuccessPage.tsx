@@ -146,7 +146,7 @@ export function SuccessPage() {
           </button>
 
           <button
-            onClick={() => navigate('/portal/profile')}
+            onClick={() => navigate('/portal')}
             className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 px-6 rounded-lg font-semibold transition-colors"
           >
             Ver Mi Perfil
