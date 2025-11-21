@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Users, Crown, Mail, Calendar, CheckCircle, XCircle, Shield, Trash2, UserPlus, X } from 'lucide-react';
+import { Users, Crown, Mail, Calendar, CheckCircle, XCircle, Shield, Trash2, UserPlus, X, XOctagon } from 'lucide-react';
 
 interface User {
   id: string;
@@ -8,6 +8,7 @@ interface User {
   is_admin: boolean;
   subscription_status: string;
   created_at: string;
+  stripe_customer_id?: string | null;
 }
 
 interface UserWithProducts extends User {
@@ -37,7 +38,7 @@ export function UsersManager() {
 
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, email, is_admin, subscription_status, created_at, stripe_customer_id')
         .order('created_at', { ascending: false });
 
       if (profilesError) throw profilesError;
@@ -116,6 +117,35 @@ export function UsersManager() {
     } catch (error: any) {
       console.error('Error removing product assignment:', error);
       alert('Error eliminando asignación: ' + error.message);
+    }
+  }
+
+  async function cancelSubscription(userId: string, userEmail: string) {
+    if (!confirm(`¿Cancelar la suscripción de ${userEmail}?\n\nEsta acción:\n- Cancelará la suscripción en Stripe\n- Actualizará el estado a "inactiva"\n- Permitirá que el usuario se suscriba nuevamente`)) return;
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cancel-subscription`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session?.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Error cancelando suscripción');
+      }
+
+      await loadUsers();
+      alert('Suscripción cancelada exitosamente. El usuario puede suscribirse nuevamente.');
+    } catch (error: any) {
+      console.error('Error canceling subscription:', error);
+      alert('Error cancelando suscripción: ' + error.message);
     }
   }
 
@@ -357,6 +387,16 @@ export function UsersManager() {
                       >
                         {user.is_admin ? 'Quitar Admin' : 'Hacer Admin'}
                       </button>
+                      {user.subscription_status === 'active' && (
+                        <button
+                          onClick={() => cancelSubscription(user.id, user.email)}
+                          className="px-3 py-1 rounded-lg text-xs font-medium bg-orange-600 text-white hover:bg-orange-700 transition-colors flex items-center gap-1"
+                          title="Cancelar suscripción (para pruebas)"
+                        >
+                          <XOctagon className="w-3 h-3" />
+                          Cancelar Suscripción
+                        </button>
+                      )}
                       <button
                         onClick={() => deleteUser(user.id, user.email)}
                         className="px-3 py-1 rounded-lg text-xs font-medium bg-red-600 text-white hover:bg-red-700 transition-colors"
