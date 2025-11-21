@@ -44,15 +44,39 @@ function DownloadWarningModal({ isOpen, onConfirm, onCancel }: DownloadWarningMo
           <h3 className="text-xl font-bold text-slate-900">Advertencia Importante</h3>
         </div>
         
-        <div className="mb-6 space-y-3">
-          <p className="text-slate-700 leading-relaxed">
-            <strong className="text-red-600">IMPORTANTE:</strong> Este software solo puede ser instalado en un máximo de <strong>3 computadoras</strong>.
-          </p>
-          <p className="text-slate-700 leading-relaxed">
-            Si instalas este software en más de 3 computadoras, tu cuenta será <strong className="text-red-600">baneada permanentemente</strong> sin posibilidad de recuperación.
-          </p>
-          <p className="text-slate-700 leading-relaxed">
-            Al hacer clic en "Aceptar y Descargar", confirmas que has leído y entendido esta advertencia.
+        <div className="mb-6 space-y-4">
+          <div className="space-y-3">
+            <p className="text-slate-700 leading-relaxed">
+              <strong className="text-red-600">IMPORTANTE:</strong> Este software solo puede ser instalado en un máximo de <strong>3 computadoras</strong>.
+            </p>
+            <p className="text-slate-700 leading-relaxed">
+              Si instalas este software en más de 3 computadoras, tu cuenta será <strong className="text-red-600">baneada permanentemente</strong> sin posibilidad de recuperación.
+            </p>
+          </div>
+
+          <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg">
+            <h4 className="font-semibold text-blue-900 mb-2">Requisitos de Monitor</h4>
+            <p className="text-blue-800 text-sm leading-relaxed mb-2">
+              <strong>Compatibilidad de Resolución:</strong> Este software solo es compatible con las siguientes resoluciones de monitor:
+            </p>
+            <ul className="list-disc list-inside text-blue-800 text-sm space-y-1 mb-2">
+              <li><strong>2560 x 1440</strong> (QHD / 2K)</li>
+              <li><strong>3440 x 1440</strong> (Ultrawide QHD)</li>
+            </ul>
+            <p className="text-blue-800 text-sm leading-relaxed">
+              <strong>Es necesario contar con un monitor de una de estas resoluciones</strong> para que el software funcione correctamente.
+            </p>
+          </div>
+
+          <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-lg">
+            <h4 className="font-semibold text-amber-900 mb-2">¿Necesitas Ayuda con la Instalación?</h4>
+            <p className="text-amber-800 text-sm leading-relaxed">
+              Si necesitas soporte para la instalación, puedes agendar una sesión usando el botón <strong>"Agendar Instalación"</strong> ubicado en la parte superior de esta página.
+            </p>
+          </div>
+
+          <p className="text-slate-700 leading-relaxed text-sm pt-2 border-t border-slate-200">
+            Al hacer clic en "Aceptar y Descargar", confirmas que has leído y entendido todas estas advertencias y requisitos.
           </p>
         </div>
 
