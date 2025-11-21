@@ -1,0 +1,77 @@
+# Verificar Dominio en Resend para Envío de Correos
+
+## 🔴 Problema Actual
+
+Los correos no se están enviando porque el dominio `todossomostraders.com` no está verificado en Resend. El error es:
+
+```
+The todosomostraders.com domain is not verified. Please, add and verify your domain on https://resend.com/domains
+```
+
+## ✅ Solución Temporal (Funciona Inmediatamente)
+
+He actualizado el código para usar el dominio de prueba de Resend (`onboarding@resend.dev`) por defecto. Esto funciona **inmediatamente** sin configuración adicional.
+
+**Los correos ahora se enviarán desde**: `onboarding@resend.dev`
+
+## 🔧 Solución Permanente: Verificar Tu Dominio
+
+Para usar `noreply@todossomostraders.com` como remitente, necesitas verificar tu dominio en Resend:
+
+### Pasos para Verificar el Dominio:
+
+1. **Accede a Resend Dashboard**
+   - Ve a: https://resend.com/domains
+   - Inicia sesión con tu cuenta de Resend
+
+2. **Agrega tu Dominio**
+   - Haz clic en **"Add Domain"** o **"Agregar Dominio"**
+   - Ingresa: `todossomostraders.com`
+   - Haz clic en **"Add"**
+
+3. **Configura los Registros DNS**
+   - Resend te mostrará varios registros DNS que debes agregar
+   - Necesitarás agregar:
+     - **SPF Record** (TXT)
+     - **DKIM Records** (TXT)
+     - **DMARC Record** (TXT) - opcional pero recomendado
+
+4. **Agrega los Registros en tu Proveedor DNS**
+   - Ve al panel de control de tu proveedor DNS (donde compraste el dominio)
+   - Agrega cada registro DNS que Resend te proporcionó
+   - Espera a que se propaguen (puede tomar de minutos a horas)
+
+5. **Verifica el Dominio**
+   - Vuelve a Resend Dashboard
+   - Haz clic en **"Verify"** o **"Verificar"**
+   - Resend verificará que los registros DNS estén correctos
+
+6. **Configura la Variable de Entorno**
+   - Una vez verificado, ve a Supabase Dashboard
+   - Edge Functions → Settings → Secrets
+   - Agrega: `RESEND_FROM_EMAIL` = `Todos Somos Traders <noreply@todossomostraders.com>`
+   - O simplemente: `noreply@todossomostraders.com`
+
+7. **Redespliega las Edge Functions** (opcional)
+   - Las funciones leerán automáticamente la nueva variable
+   - Pero puedes redesplegarlas para asegurarte
+
+## 📝 Nota Importante
+
+- **Solución Temporal**: Los correos funcionan ahora con `onboarding@resend.dev`
+- **Solución Permanente**: Verifica tu dominio para usar `noreply@todossomostraders.com`
+- Los correos funcionarán en ambos casos, solo cambia el remitente
+
+## 🔍 Verificación
+
+Después de verificar el dominio, prueba enviando un correo y verifica:
+1. Que llegue correctamente
+2. Que no vaya a spam
+3. Que el remitente sea `noreply@todossomostraders.com`
+
+## ⚠️ Si Tienes Problemas
+
+- Verifica que todos los registros DNS estén correctos
+- Espera hasta 48 horas para la propagación completa
+- Contacta a Resend support si el dominio no se verifica después de 48 horas
+

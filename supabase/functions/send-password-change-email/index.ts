@@ -2,6 +2,8 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
 const SITE_URL = Deno.env.get('SITE_URL') || 'https://todossomostraders.com';
+// Usar dominio verificado de Resend o el de prueba
+const RESEND_FROM_EMAIL = Deno.env.get('RESEND_FROM_EMAIL') || 'onboarding@resend.dev';
 
 interface PasswordChangeEmailData {
   email: string;
@@ -48,7 +50,7 @@ serve(async (req) => {
         'Authorization': `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: 'Todos Somos Traders <noreply@todossomostraders.com>',
+        from: RESEND_FROM_EMAIL,
         to: email,
         subject: '✅ Contraseña Actualizada - Todos Somos Traders',
         html: getPasswordChangeEmailTemplate(email, changeDate, changeTime),

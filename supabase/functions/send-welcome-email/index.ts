@@ -4,6 +4,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
 const ADMIN_EMAIL = Deno.env.get('ADMIN_EMAIL') || 'admin@todossomostraders.com';
 const SITE_URL = Deno.env.get('SITE_URL') || 'https://todossomostraders.com';
+// Usar dominio verificado de Resend o el de prueba
+const RESEND_FROM_EMAIL = Deno.env.get('RESEND_FROM_EMAIL') || 'onboarding@resend.dev';
 
 interface WelcomeEmailData {
   email: string;
@@ -60,7 +62,7 @@ serve(async (req) => {
         'Authorization': `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: 'Todos Somos Traders <noreply@todossomostraders.com>',
+        from: RESEND_FROM_EMAIL,
         to: email,
         subject: '¡Bienvenido a Todos Somos Traders!',
         html: getWelcomeEmailTemplate(email, userId, createdAt),
@@ -80,7 +82,7 @@ serve(async (req) => {
         'Authorization': `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: 'Todos Somos Traders <noreply@todossomostraders.com>',
+        from: RESEND_FROM_EMAIL,
         to: ADMIN_EMAIL,
         subject: `🔔 Nuevo Usuario Registrado: ${email}`,
         html: getAdminNotificationTemplate(email, userId, createdAt),

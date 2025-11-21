@@ -7,6 +7,9 @@ const stripeWebhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET')!;
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
 const ADMIN_EMAIL = Deno.env.get('ADMIN_EMAIL') || 'admin@todossomostraders.com';
 const SITE_URL = Deno.env.get('SITE_URL') || 'https://todossomostraders.com';
+// Usar dominio verificado de Resend o el configurado
+// Si RESEND_FROM_EMAIL no está configurado, usar el dominio de prueba de Resend
+const RESEND_FROM_EMAIL = Deno.env.get('RESEND_FROM_EMAIL') || 'onboarding@resend.dev';
 
 const stripe = new Stripe(stripeSecret, {
   appInfo: {
@@ -227,7 +230,7 @@ async function sendPurchaseEmails(customerId: string, session: Stripe.Checkout.S
         'Authorization': `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: 'Todos Somos Traders <noreply@todossomostraders.com>',
+        from: RESEND_FROM_EMAIL,
         to: customerEmail,
         subject: `✅ Recibo de Compra - ${productName}`,
         html: receiptEmailHtml,
@@ -264,7 +267,7 @@ async function sendPurchaseEmails(customerId: string, session: Stripe.Checkout.S
         'Authorization': `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: 'Todos Somos Traders <noreply@todossomostraders.com>',
+        from: RESEND_FROM_EMAIL,
         to: ADMIN_EMAIL,
         subject: `💰 Nueva ${isSubscription ? 'Suscripción' : 'Compra'}: ${productName}`,
         html: adminNotificationHtml,
