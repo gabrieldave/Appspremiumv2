@@ -416,16 +416,14 @@ export function UsersManager() {
                       >
                         {user.is_admin ? 'Quitar Admin' : 'Hacer Admin'}
                       </button>
-                      {(user.stripe_customer_id || user.subscription_status !== 'inactive') && (
-                        <button
-                          onClick={() => syncSubscription(user.id, user.email)}
-                          className="px-3 py-1 rounded-lg text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors flex items-center gap-1"
-                          title="Sincronizar suscripción desde Stripe"
-                        >
-                          <RefreshCw className="w-3 h-3" />
-                          Sincronizar
-                        </button>
-                      )}
+                      <button
+                        onClick={() => syncSubscription(user.id, user.email)}
+                        className="px-3 py-1 rounded-lg text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors flex items-center gap-1"
+                        title="Sincronizar suscripción desde Stripe (busca en profiles y stripe_customers)"
+                      >
+                        <RefreshCw className="w-3 h-3" />
+                        Sincronizar
+                      </button>
                       {user.subscription_status === 'active' && (
                         <button
                           onClick={() => cancelSubscription(user.id, user.email)}
