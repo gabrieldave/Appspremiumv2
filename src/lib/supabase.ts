@@ -69,9 +69,30 @@ export type MT4Download = {
   release_date: string;
   release_notes: string;
   is_active: boolean;
+  download_limit: number;
   created_at: string;
   updated_at: string;
   mt4_products?: MT4Product;
+};
+
+export type MT4DownloadLink = {
+  id: string;
+  download_id: string;
+  file_url: string;
+  label: string | null;
+  display_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type UserDownload = {
+  id: string;
+  user_id: string;
+  download_id: string;
+  download_link_id: string | null;
+  downloaded_at: string;
+  ip_address: string | null;
+  user_agent: string | null;
 };
 
 export type PremiumApp = {

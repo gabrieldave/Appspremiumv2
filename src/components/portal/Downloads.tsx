@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Download as DownloadIcon, Calendar, FileText, HardDrive, Loader2, Lock } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
+import { Download as DownloadIcon, Calendar, FileText, HardDrive, Loader2, Lock, AlertTriangle } from 'lucide-react';
+import { supabase, MT4DownloadLink } from '../../lib/supabase';
 
 interface Product {
   id: string;
@@ -20,13 +20,79 @@ interface MT4Download {
   release_date: string;
   release_notes: string;
   is_active: boolean;
+  download_limit: number;
   mt4_products: Product;
+  mt4_download_links?: MT4DownloadLink[];
+}
+
+interface DownloadWarningModalProps {
+  isOpen: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+
+function DownloadWarningModal({ isOpen, onConfirm, onCancel }: DownloadWarningModalProps) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+            <AlertTriangle className="w-6 h-6 text-red-600" />
+          </div>
+          <h3 className="text-xl font-bold text-slate-900">Advertencia Importante</h3>
+        </div>
+        
+        <div className="mb-6 space-y-3">
+          <p className="text-slate-700 leading-relaxed">
+            <strong className="text-red-600">IMPORTANTE:</strong> Este software solo puede ser instalado en un máximo de <strong>3 computadoras</strong>.
+          </p>
+          <p className="text-slate-700 leading-relaxed">
+            Si instalas este software en más de 3 computadoras, tu cuenta será <strong className="text-red-600">baneada permanentemente</strong> sin posibilidad de recuperación.
+          </p>
+          <p className="text-slate-700 leading-relaxed">
+            Al hacer clic en "Aceptar y Descargar", confirmas que has leído y entendido esta advertencia.
+          </p>
+        </div>
+
+        <div className="flex gap-3">
+          <button
+            onClick={onCancel}
+            className="flex-1 px-4 py-2 border-2 border-slate-300 text-slate-700 rounded-lg font-semibold hover:bg-slate-100 transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={onConfirm}
+            className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white rounded-lg font-semibold transition-all"
+          >
+            Aceptar y Descargar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export function Downloads() {
   const [downloads, setDownloads] = useState<MT4Download[]>([]);
   const [userProducts, setUserProducts] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [warningModal, setWarningModal] = useState<{
+    isOpen: boolean;
+    downloadId: string | null;
+    linkId: string | null;
+    fileUrl: string;
+    label: string | null;
+  }>({
+    isOpen: false,
+    downloadId: null,
+    linkId: null,
+    fileUrl: '',
+    label: null,
+  });
+  const [userDownloadCounts, setUserDownloadCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
     fetchDownloads();
@@ -66,15 +132,28 @@ export function Downloads() {
 
       const isAdmin = profileData?.is_admin === true;
 
-      // Obtener todas las descargas activas
+      // Obtener todas las descargas activas con sus enlaces
       const { data: allDownloads, error } = await supabase
         .from('mt4_downloads')
         .select(`
           *,
-          mt4_products(*)
+          mt4_products(*),
+          mt4_download_links(*)
         `)
         .eq('is_active', true)
         .order('release_date', { ascending: false });
+
+      // Obtener conteo de descargas del usuario
+      const { data: userDownloadsData } = await supabase
+        .from('user_downloads')
+        .select('download_id')
+        .eq('user_id', user.id);
+
+      const downloadCounts: Record<string, number> = {};
+      userDownloadsData?.forEach((ud) => {
+        downloadCounts[ud.download_id] = (downloadCounts[ud.download_id] || 0) + 1;
+      });
+      setUserDownloadCounts(downloadCounts);
 
       // Filtrar descargas según los productos del usuario
       // Si es admin, ve todas. Si no, solo ve descargas de productos que tiene
@@ -111,6 +190,95 @@ export function Downloads() {
   const canDownload = (download: MT4Download) => {
     if (!download.mt4_products.is_premium) return true;
     return userProducts.includes(download.product_id);
+  };
+
+  const hasReachedLimit = (download: MT4Download) => {
+    const downloadCount = userDownloadCounts[download.id] || 0;
+    const limit = download.download_limit || 1;
+    return downloadCount >= limit;
+  };
+
+  const handleDownloadClick = (download: MT4Download, linkId: string | null, fileUrl: string, label: string | null) => {
+    if (hasReachedLimit(download)) {
+      alert(`Has alcanzado el límite de descargas para esta versión. Solo puedes descargarla ${download.download_limit} vez(es).`);
+      return;
+    }
+
+    setWarningModal({
+      isOpen: true,
+      downloadId: download.id,
+      linkId,
+      fileUrl,
+      label,
+    });
+  };
+
+  const handleConfirmDownload = async () => {
+    if (!warningModal.downloadId || !warningModal.fileUrl) return;
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Buscar la descarga para obtener el límite
+      const download = downloads.find((d) => d.id === warningModal.downloadId);
+      if (!download) return;
+
+      // Verificar límite antes de insertar
+      const currentCount = userDownloadCounts[warningModal.downloadId] || 0;
+      const limit = download.download_limit || 1;
+
+      if (currentCount >= limit) {
+        alert('Has alcanzado el límite de descargas para esta versión. Se te han terminado las licencias.');
+        setWarningModal({
+          isOpen: false,
+          downloadId: null,
+          linkId: null,
+          fileUrl: '',
+          label: null,
+        });
+        return;
+      }
+
+      // Registrar la descarga
+      const { error: insertError } = await supabase
+        .from('user_downloads')
+        .insert({
+          user_id: user.id,
+          download_id: warningModal.downloadId,
+          download_link_id: warningModal.linkId,
+        });
+
+      if (insertError) {
+        // Si el error es por duplicado (unique constraint)
+        if (insertError.code === '23505') {
+          alert('Ya has descargado esta versión anteriormente. Se te han terminado las licencias.');
+        } else {
+          console.error('Error registering download:', insertError);
+          alert('Error al registrar la descarga. Por favor, intenta de nuevo.');
+        }
+      } else {
+        // Actualizar conteo local
+        setUserDownloadCounts((prev) => ({
+          ...prev,
+          [warningModal.downloadId!]: (prev[warningModal.downloadId!] || 0) + 1,
+        }));
+
+        // Abrir enlace de descarga
+        window.open(warningModal.fileUrl, '_blank', 'noopener,noreferrer');
+      }
+    } catch (error) {
+      console.error('Error handling download:', error);
+      alert('Error al procesar la descarga. Por favor, intenta de nuevo.');
+    } finally {
+      setWarningModal({
+        isOpen: false,
+        downloadId: null,
+        linkId: null,
+        fileUrl: '',
+        label: null,
+      });
+    }
   };
 
   const groupedDownloads = downloads.reduce((acc, download) => {
@@ -247,15 +415,51 @@ export function Downloads() {
 
                         <div className="flex-shrink-0">
                           {hasAccess ? (
-                            <a
-                              href={download.file_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg"
-                            >
-                              <DownloadIcon className="w-5 h-5" />
-                              Descargar
-                            </a>
+                            <div className="space-y-2">
+                              {hasReachedLimit(download) ? (
+                                <div className="text-center">
+                                  <div className="inline-flex items-center gap-2 bg-red-100 text-red-700 px-6 py-3 rounded-lg font-semibold">
+                                    <Lock className="w-5 h-5" />
+                                    Límite Alcanzado
+                                  </div>
+                                  <p className="text-xs text-red-600 mt-2">
+                                    Se te han terminado las licencias para esta versión
+                                  </p>
+                                </div>
+                              ) : (
+                                <>
+                                  {download.mt4_download_links && download.mt4_download_links.length > 0 ? (
+                                    <div className="space-y-2">
+                                      {download.mt4_download_links
+                                        .sort((a, b) => a.display_order - b.display_order)
+                                        .map((link) => (
+                                          <button
+                                            key={link.id}
+                                            onClick={() => handleDownloadClick(download, link.id, link.file_url, link.label)}
+                                            className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg"
+                                          >
+                                            <DownloadIcon className="w-5 h-5" />
+                                            {link.label || 'Descargar'}
+                                          </button>
+                                        ))}
+                                    </div>
+                                  ) : (
+                                    <button
+                                      onClick={() => handleDownloadClick(download, null, download.file_url, null)}
+                                      className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg"
+                                    >
+                                      <DownloadIcon className="w-5 h-5" />
+                                      Descargar
+                                    </button>
+                                  )}
+                                  {userDownloadCounts[download.id] > 0 && (
+                                    <p className="text-xs text-slate-500 text-center">
+                                      Descargas: {userDownloadCounts[download.id]}/{download.download_limit || 1}
+                                    </p>
+                                  )}
+                                </>
+                              )}
+                            </div>
                           ) : (
                             <button
                               disabled
@@ -275,6 +479,18 @@ export function Downloads() {
           ))}
         </div>
       )}
+
+      <DownloadWarningModal
+        isOpen={warningModal.isOpen}
+        onConfirm={handleConfirmDownload}
+        onCancel={() => setWarningModal({
+          isOpen: false,
+          downloadId: null,
+          linkId: null,
+          fileUrl: '',
+          label: null,
+        })}
+      />
     </div>
   );
 }

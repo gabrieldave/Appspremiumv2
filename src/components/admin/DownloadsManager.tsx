@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Plus, Edit2, Trash2, Save, X, Loader2 } from 'lucide-react';
-import { supabase, MT4Download, MT4Product } from '../../lib/supabase';
+import { Plus, Edit2, Trash2, Save, X, Loader2, Trash } from 'lucide-react';
+import { supabase, MT4Download, MT4Product, MT4DownloadLink } from '../../lib/supabase';
+
+type DownloadLinkForm = {
+  file_url: string;
+  label: string;
+};
 
 type FormData = {
   product_id: string;
@@ -11,6 +16,8 @@ type FormData = {
   release_date: string;
   release_notes: string;
   is_active: boolean;
+  download_limit: number;
+  download_links: DownloadLinkForm[];
 };
 
 export function DownloadsManager() {
@@ -28,6 +35,8 @@ export function DownloadsManager() {
     release_date: new Date().toISOString().split('T')[0],
     release_notes: '',
     is_active: true,
+    download_limit: 1,
+    download_links: [],
   });
 
   useEffect(() => {
@@ -46,12 +55,13 @@ export function DownloadsManager() {
       .from('mt4_downloads')
       .select(`
         *,
-        mt4_products(*)
+        mt4_products(*),
+        mt4_download_links(*)
       `)
       .order('release_date', { ascending: false });
 
     if (productsData) setProducts(productsData);
-    if (downloadsData) setDownloads(downloadsData as any);
+    if (downloadsData) setDownloads(downloadsData as MT4Download[]);
 
     setLoading(false);
   };
@@ -59,30 +69,101 @@ export function DownloadsManager() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (editingId) {
-      const { error } = await supabase
-        .from('mt4_downloads')
-        .update(formData)
-        .eq('id', editingId);
+    try {
+      const downloadData = {
+        product_id: formData.product_id,
+        version_name: formData.version_name,
+        version_number: formData.version_number,
+        file_url: formData.file_url, // Mantener para compatibilidad
+        file_size: formData.file_size,
+        release_date: formData.release_date,
+        release_notes: formData.release_notes,
+        is_active: formData.is_active,
+        download_limit: formData.download_limit,
+      };
 
-      if (!error) {
+      if (editingId) {
+        // Actualizar descarga
+        const { error: downloadError } = await supabase
+          .from('mt4_downloads')
+          .update(downloadData)
+          .eq('id', editingId);
+
+        if (downloadError) throw downloadError;
+
+        // Eliminar enlaces existentes
+        await supabase
+          .from('mt4_download_links')
+          .delete()
+          .eq('download_id', editingId);
+
+        // Insertar nuevos enlaces
+        if (formData.download_links.length > 0) {
+          const linksToInsert = formData.download_links.map((link, index) => ({
+            download_id: editingId,
+            file_url: link.file_url,
+            label: link.label || null,
+            display_order: index,
+          }));
+
+          const { error: linksError } = await supabase
+            .from('mt4_download_links')
+            .insert(linksToInsert);
+
+          if (linksError) throw linksError;
+        }
+
+        await fetchData();
+        resetForm();
+      } else {
+        // Crear nueva descarga
+        const { data: newDownload, error: downloadError } = await supabase
+          .from('mt4_downloads')
+          .insert([downloadData])
+          .select()
+          .single();
+
+        if (downloadError) throw downloadError;
+
+        // Insertar enlaces de descarga
+        if (formData.download_links.length > 0 && newDownload) {
+          const linksToInsert = formData.download_links.map((link, index) => ({
+            download_id: newDownload.id,
+            file_url: link.file_url,
+            label: link.label || null,
+            display_order: index,
+          }));
+
+          const { error: linksError } = await supabase
+            .from('mt4_download_links')
+            .insert(linksToInsert);
+
+          if (linksError) throw linksError;
+        }
+
         await fetchData();
         resetForm();
       }
-    } else {
-      const { error } = await supabase
-        .from('mt4_downloads')
-        .insert([formData]);
-
-      if (!error) {
-        await fetchData();
-        resetForm();
-      }
+    } catch (error) {
+      console.error('Error saving download:', error);
+      alert('Error al guardar la descarga. Por favor, intenta de nuevo.');
     }
   };
 
-  const handleEdit = (download: MT4Download) => {
+  const handleEdit = (download: MT4Download & { mt4_download_links?: MT4DownloadLink[] }) => {
     setEditingId(download.id);
+    
+    // Convertir enlaces a formato del formulario
+    const downloadLinks: DownloadLinkForm[] = 
+      download.mt4_download_links && download.mt4_download_links.length > 0
+        ? download.mt4_download_links
+            .sort((a, b) => a.display_order - b.display_order)
+            .map(link => ({
+              file_url: link.file_url,
+              label: link.label || '',
+            }))
+        : [];
+
     setFormData({
       product_id: download.product_id,
       version_name: download.version_name,
@@ -92,6 +173,8 @@ export function DownloadsManager() {
       release_date: download.release_date.split('T')[0],
       release_notes: download.release_notes,
       is_active: download.is_active,
+      download_limit: download.download_limit ?? 1,
+      download_links: downloadLinks.length > 0 ? downloadLinks : [{ file_url: download.file_url, label: '' }],
     });
     setShowForm(true);
   };
@@ -121,7 +204,29 @@ export function DownloadsManager() {
       release_date: new Date().toISOString().split('T')[0],
       release_notes: '',
       is_active: true,
+      download_limit: 1,
+      download_links: [],
     });
+  };
+
+  const addDownloadLink = () => {
+    setFormData({
+      ...formData,
+      download_links: [...formData.download_links, { file_url: '', label: '' }],
+    });
+  };
+
+  const removeDownloadLink = (index: number) => {
+    setFormData({
+      ...formData,
+      download_links: formData.download_links.filter((_, i) => i !== index),
+    });
+  };
+
+  const updateDownloadLink = (index: number, field: keyof DownloadLinkForm, value: string) => {
+    const newLinks = [...formData.download_links];
+    newLinks[index] = { ...newLinks[index], [field]: value };
+    setFormData({ ...formData, download_links: newLinks });
   };
 
   if (loading) {
@@ -250,22 +355,107 @@ export function DownloadsManager() {
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">
-                URL de Descarga *
-              </label>
-              <input
-                type="url"
-                required
-                value={formData.file_url}
-                onChange={(e) => setFormData({ ...formData, file_url: e.target.value })}
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                placeholder="https://1drv.ms/u/c/..."
-              />
-              <p className="text-xs text-slate-500 mt-1">
-                Usa enlaces directos de descarga de OneDrive, Dropbox, Google Drive, etc.
-              </p>
-            </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  Límite de Descargas por Usuario *
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  required
+                  value={formData.download_limit}
+                  onChange={(e) => setFormData({ ...formData, download_limit: parseInt(e.target.value) || 1 })}
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="1"
+                />
+                <p className="text-xs text-slate-500 mt-1">
+                  Número de veces que cada usuario puede descargar esta versión (cualquiera de los enlaces)
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  URL de Descarga Principal (Compatibilidad) *
+                </label>
+                <input
+                  type="url"
+                  required
+                  value={formData.file_url}
+                  onChange={(e) => setFormData({ ...formData, file_url: e.target.value })}
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="https://1drv.ms/u/c/..."
+                />
+                <p className="text-xs text-slate-500 mt-1">
+                  Enlace principal (se usará si no hay enlaces adicionales configurados)
+                </p>
+              </div>
+
+              <div className="md:col-span-2">
+                <div className="flex justify-between items-center mb-3">
+                  <label className="block text-sm font-semibold text-slate-700">
+                    Enlaces de Descarga Adicionales
+                  </label>
+                  <button
+                    type="button"
+                    onClick={addDownloadLink}
+                    className="flex items-center gap-2 text-sm bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Agregar Enlace
+                  </button>
+                </div>
+                <p className="text-xs text-slate-500 mb-3">
+                  Puedes agregar múltiples enlaces de descarga para diferentes computadoras. Si no agregas enlaces adicionales, se usará el enlace principal.
+                </p>
+                
+                {formData.download_links.length === 0 && (
+                  <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 text-center text-sm text-slate-600">
+                    No hay enlaces adicionales. Se usará el enlace principal.
+                  </div>
+                )}
+
+                {formData.download_links.map((link, index) => (
+                  <div key={index} className="bg-slate-50 border border-slate-200 rounded-lg p-4 mb-3">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-1 space-y-3">
+                        <div>
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">
+                            URL de Descarga {index + 1} *
+                          </label>
+                          <input
+                            type="url"
+                            required
+                            value={link.file_url}
+                            onChange={(e) => updateDownloadLink(index, 'file_url', e.target.value)}
+                            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm"
+                            placeholder="https://1drv.ms/u/c/..."
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold text-slate-700 mb-1">
+                            Etiqueta (Opcional)
+                          </label>
+                          <input
+                            type="text"
+                            value={link.label}
+                            onChange={(e) => updateDownloadLink(index, 'label', e.target.value)}
+                            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm"
+                            placeholder="Ej: Windows 64-bit, Mac, etc."
+                          />
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeDownloadLink(index)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors mt-6"
+                        title="Eliminar enlace"
+                      >
+                        <Trash className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
 
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">
