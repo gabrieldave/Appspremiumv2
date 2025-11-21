@@ -5,8 +5,8 @@ import { createClient } from 'npm:@supabase/supabase-js@2.49.1';
 const stripeSecret = Deno.env.get('STRIPE_SECRET_KEY')!;
 const stripeWebhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET')!;
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
-const ADMIN_EMAIL = Deno.env.get('ADMIN_EMAIL') || 'admin@todosomostraders.com';
-const SITE_URL = Deno.env.get('SITE_URL') || 'https://appspremiumv2.vercel.app';
+const ADMIN_EMAIL = Deno.env.get('ADMIN_EMAIL') || 'admin@todossomostraders.com';
+const SITE_URL = Deno.env.get('SITE_URL') || 'https://todossomostraders.com';
 
 const stripe = new Stripe(stripeSecret, {
   appInfo: {
@@ -227,7 +227,7 @@ async function sendPurchaseEmails(customerId: string, session: Stripe.Checkout.S
         'Authorization': `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: 'Todos Somos Traders <noreply@todosomostraders.com>',
+        from: 'Todos Somos Traders <noreply@todossomostraders.com>',
         to: customerEmail,
         subject: `✅ Recibo de Compra - ${productName}`,
         html: receiptEmailHtml,
@@ -264,7 +264,7 @@ async function sendPurchaseEmails(customerId: string, session: Stripe.Checkout.S
         'Authorization': `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: 'Todos Somos Traders <noreply@todosomostraders.com>',
+        from: 'Todos Somos Traders <noreply@todossomostraders.com>',
         to: ADMIN_EMAIL,
         subject: `💰 Nueva ${isSubscription ? 'Suscripción' : 'Compra'}: ${productName}`,
         html: adminNotificationHtml,

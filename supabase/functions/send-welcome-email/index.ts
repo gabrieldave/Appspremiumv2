@@ -2,8 +2,8 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
-const ADMIN_EMAIL = Deno.env.get('ADMIN_EMAIL') || 'admin@todosomostraders.com';
-const SITE_URL = Deno.env.get('SITE_URL') || 'https://appspremiumv2.vercel.app';
+const ADMIN_EMAIL = Deno.env.get('ADMIN_EMAIL') || 'admin@todossomostraders.com';
+const SITE_URL = Deno.env.get('SITE_URL') || 'https://todossomostraders.com';
 
 interface WelcomeEmailData {
   email: string;
@@ -60,7 +60,7 @@ serve(async (req) => {
         'Authorization': `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: 'Todos Somos Traders <noreply@todosomostraders.com>',
+        from: 'Todos Somos Traders <noreply@todossomostraders.com>',
         to: email,
         subject: '¡Bienvenido a Todos Somos Traders!',
         html: getWelcomeEmailTemplate(email, userId, createdAt),
@@ -80,7 +80,7 @@ serve(async (req) => {
         'Authorization': `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: 'Todos Somos Traders <noreply@todosomostraders.com>',
+        from: 'Todos Somos Traders <noreply@todossomostraders.com>',
         to: ADMIN_EMAIL,
         subject: `🔔 Nuevo Usuario Registrado: ${email}`,
         html: getAdminNotificationTemplate(email, userId, createdAt),

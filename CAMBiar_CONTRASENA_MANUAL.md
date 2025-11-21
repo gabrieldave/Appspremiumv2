@@ -8,7 +8,7 @@ No puedes cambiar la contraseña desde el Dashboard de Supabase porque no hay un
 ### Solución 1: Registrarse de Nuevo (MÁS SIMPLE)
 
 1. **Ve a tu app en Vercel**:
-   - Abre `https://appspremiumv2.vercel.app` (o tu URL de Vercel)
+   - Abre `https://todossomostraders.com` (o tu URL de producción)
 
 2. **Intenta registrarte**:
    - Click en "¿No tienes cuenta? Regístrate"
@@ -42,8 +42,8 @@ No puedes cambiar la contraseña desde el Dashboard de Supabase porque no hay un
 
 1. **Primero configurar URLs en Supabase** (ver `CONFIGURAR_REDIRECT_URLS_SUPABASE.md`):
    - Authentication → Settings
-   - Site URL: `https://appspremiumv2.vercel.app`
-   - Redirect URLs: `https://appspremiumv2.vercel.app/**`
+   - Site URL: `https://todossomostraders.com`
+   - Redirect URLs: `https://todossomostraders.com/**`
 
 2. **Resetear contraseña**:
    - Ve a tu app

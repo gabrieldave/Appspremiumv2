@@ -13,7 +13,7 @@
 
 ### Paso 2: Crear Nuevo Usuario desde la App
 
-1. Ve a tu app en Vercel: `https://appspremiumv2.vercel.app`
+1. Ve a tu app: `https://todossomostraders.com`
 2. Haz clic en **"¿No tienes cuenta? Regístrate"**
 3. Completa el formulario:
    - **Email**: `david.del.rio.colin@gmail.com`
@@ -57,7 +57,7 @@ WHERE email = 'david.del.rio.colin@gmail.com';
 
 ### Paso 5: Iniciar Sesión
 
-1. Ve a tu app en Vercel: `https://appspremiumv2.vercel.app`
+1. Ve a tu app: `https://todossomostraders.com`
 2. Haz clic en **"Iniciar Sesión"**
 3. Ingresa:
    - **Email**: `david.del.rio.colin@gmail.com`

@@ -6,7 +6,7 @@ Cuando haces reset de contraseña o confirmas email, Supabase te redirige a:
 - ❌ `localhost:3000` (tu servidor local, que no está corriendo)
 
 Pero tu app está en:
-- ✅ `https://appspremiumv2.vercel.app` (tu URL de producción)
+- ✅ `https://todossomostraders.com` (tu URL de producción)
 
 ---
 
@@ -27,7 +27,7 @@ Pero tu app está en:
    ```
    a:
    ```
-   https://appspremiumv2.vercel.app
+   https://todossomostraders.com
    ```
    (O la URL que Vercel te haya dado para tu proyecto)
 
@@ -36,8 +36,8 @@ Pero tu app está en:
 1. En **"Redirect URLs"** o **"Additional Redirect URLs"**, agrega estas URLs:
 
    ```
-   https://appspremiumv2.vercel.app/**
-   https://appspremiumv2.vercel.app
+   https://todossomostraders.com/**
+   https://todossomostraders.com
    http://localhost:3000/**
    http://localhost:3000
    ```
@@ -57,17 +57,17 @@ Pero tu app está en:
 
 ## 🎯 URLs que Necesitas Configurar
 
-Reemplaza `appspremiumv2.vercel.app` con tu URL real de Vercel si es diferente:
-
 ### Site URL:
 ```
-https://appspremiumv2.vercel.app
+https://todossomostraders.com
 ```
 
 ### Redirect URLs (una por línea o separadas por comas):
 ```
-https://appspremiumv2.vercel.app/**
-https://appspremiumv2.vercel.app
+   https://todossomostraders.com/**
+   https://todossomostraders.com
+   https://www.todossomostraders.com/**
+   https://www.todossomostraders.com
 http://localhost:3000/**
 http://localhost:3000
 ```
@@ -81,8 +81,8 @@ Si no sabes cuál es tu URL de Vercel:
 1. Ve a [Vercel Dashboard](https://vercel.com/dashboard)
 2. Selecciona tu proyecto
 3. Verás la URL en la parte superior, algo como:
-   - `https://appspremiumv2.vercel.app`
-   - `https://appspremiumv2-xyz.vercel.app`
+   - `https://todossomostraders.com`
+   - `https://www.todossomostraders.com`
 
 ---
 
@@ -110,7 +110,7 @@ Si necesitas usar el reset de contraseña ahora mismo y no puedes esperar a conf
    - Copia solo la parte del `access_token`
 
 2. **Ve a tu app en Vercel**:
-   - Abre `https://appspremiumv2.vercel.app`
+   - Abre `https://todossomostraders.com`
 
 3. **En la consola del navegador (F12)**, ejecuta:
    ```javascript

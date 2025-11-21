@@ -1,7 +1,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
-const SITE_URL = Deno.env.get('SITE_URL') || 'https://appspremiumv2.vercel.app';
+const SITE_URL = Deno.env.get('SITE_URL') || 'https://todossomostraders.com';
 
 interface PasswordChangeEmailData {
   email: string;
@@ -48,7 +48,7 @@ serve(async (req) => {
         'Authorization': `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: 'Todos Somos Traders <noreply@todosomostraders.com>',
+        from: 'Todos Somos Traders <noreply@todossomostraders.com>',
         to: email,
         subject: '✅ Contraseña Actualizada - Todos Somos Traders',
         html: getPasswordChangeEmailTemplate(email, changeDate, changeTime),

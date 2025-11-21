@@ -130,7 +130,7 @@ Los emails de compra y cambio de contraseña se envían mediante Edge Functions 
 
 **Variables de entorno necesarias**:
 - `RESEND_API_KEY` (opcional, pero recomendado)
-- `SITE_URL` (opcional, default: https://appspremiumv2.vercel.app)
+- `SITE_URL` (opcional, default: https://todossomostraders.com)
 
 **Cómo desplegar**:
 ```bash
@@ -142,8 +142,8 @@ supabase functions deploy send-password-change-email
 
 **Variables de entorno necesarias**:
 - `RESEND_API_KEY` (opcional, pero recomendado)
-- `ADMIN_EMAIL` (opcional, default: admin@todosomostraders.com)
-- `SITE_URL` (opcional, default: https://appspremiumv2.vercel.app)
+- `ADMIN_EMAIL` (opcional, default: admin@todossomostraders.com)
+- `SITE_URL` (opcional, default: https://todossomostraders.com)
 - `STRIPE_SECRET_KEY` (requerido)
 - `STRIPE_WEBHOOK_SECRET` (requerido)
 

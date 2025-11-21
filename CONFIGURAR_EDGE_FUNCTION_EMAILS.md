@@ -26,7 +26,7 @@ Para que los emails funcionen, necesitas agregar las variables de entorno en Sup
    
    - **SITE_URL**: 
      - URL de tu aplicación
-     - Ejemplo: `https://appspremiumv2.vercel.app`
+     - Ejemplo: `https://todossomostraders.com`
 
 ### Opción 2: Usando Supabase CLI
 
@@ -34,7 +34,7 @@ Para que los emails funcionen, necesitas agregar las variables de entorno en Sup
 # Si tienes Supabase CLI instalado
 supabase secrets set RESEND_API_KEY=re_tu_api_key_aqui --project-ref pezisfaeecgjdguneuip
 supabase secrets set ADMIN_EMAIL=tu-email@ejemplo.com --project-ref pezisfaeecgjdguneuip
-supabase secrets set SITE_URL=https://appspremiumv2.vercel.app --project-ref pezisfaeecgjdguneuip
+supabase secrets set SITE_URL=https://todossomostraders.com --project-ref pezisfaeecgjdguneuip
 ```
 
 ## 📋 Cómo Funciona
