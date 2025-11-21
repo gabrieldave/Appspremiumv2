@@ -9,7 +9,9 @@ const ADMIN_EMAIL = Deno.env.get('ADMIN_EMAIL') || 'admin@todossomostraders.com'
 const SITE_URL = Deno.env.get('SITE_URL') || 'https://todossomostraders.com';
 // Usar dominio verificado de Resend o el configurado
 // Si RESEND_FROM_EMAIL no está configurado, usar el dominio de prueba de Resend
-const RESEND_FROM_EMAIL = Deno.env.get('RESEND_FROM_EMAIL') || 'onboarding@resend.dev';
+// Asegurar formato correcto: email@example.com
+const RESEND_FROM_EMAIL_RAW = Deno.env.get('RESEND_FROM_EMAIL') || 'onboarding@resend.dev';
+const RESEND_FROM_EMAIL = RESEND_FROM_EMAIL_RAW.trim();
 
 const stripe = new Stripe(stripeSecret, {
   appInfo: {
@@ -151,6 +153,8 @@ async function sendPurchaseEmails(customerId: string, session: Stripe.Checkout.S
   console.log('📧 Configuración de email:');
   console.log('  - RESEND_FROM_EMAIL:', RESEND_FROM_EMAIL);
   console.log('  - RESEND_FROM_EMAIL desde env:', Deno.env.get('RESEND_FROM_EMAIL') || 'NO CONFIGURADA (usando default)');
+  console.log('  - RESEND_FROM_EMAIL longitud:', RESEND_FROM_EMAIL.length);
+  console.log('  - RESEND_FROM_EMAIL formato válido:', /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(RESEND_FROM_EMAIL));
 
   try {
     // Obtener información del cliente desde Stripe
