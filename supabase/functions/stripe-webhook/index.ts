@@ -147,6 +147,11 @@ async function sendPurchaseEmails(customerId: string, session: Stripe.Checkout.S
     return;
   }
 
+  // Debug: Verificar qué dominio se está usando
+  console.log('📧 Configuración de email:');
+  console.log('  - RESEND_FROM_EMAIL:', RESEND_FROM_EMAIL);
+  console.log('  - RESEND_FROM_EMAIL desde env:', Deno.env.get('RESEND_FROM_EMAIL') || 'NO CONFIGURADA (usando default)');
+
   try {
     // Obtener información del cliente desde Stripe
     const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
