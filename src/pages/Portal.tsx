@@ -38,21 +38,18 @@ function AccessDeniedMessage() {
 
 export function Portal() {
   const [currentPage, setCurrentPage] = useState<PageType>('profile');
-  const [hasInitialRedirect, setHasInitialRedirect] = useState(false);
   const accessLevel = useAccessControl();
 
   useEffect(() => {
-    if (!accessLevel.loading && !hasInitialRedirect) {
-      // Solo hacer redirección automática en la carga inicial
+    if (!accessLevel.loading) {
       // Si no tiene productos asignados (alpha lite o premium), llevarlo a Apps Premium
       if (!accessLevel.hasAnyProduct) {
         setCurrentPage('apps');
-      } else if (accessLevel.canAccessDownloads) {
+      } else if (accessLevel.canAccessDownloads && currentPage === 'profile') {
         setCurrentPage('downloads');
       }
-      setHasInitialRedirect(true);
     }
-  }, [accessLevel.loading, accessLevel.hasAnyProduct, accessLevel.canAccessDownloads, hasInitialRedirect]);
+  }, [accessLevel.loading, accessLevel.hasAnyProduct, accessLevel.canAccessDownloads, currentPage]);
 
   const handleNavigate = (page: PageType) => {
     // Todos pueden acceder a apps y a su perfil
@@ -83,12 +80,10 @@ export function Portal() {
       case 'downloads':
         return accessLevel.canAccessDownloads ? <Downloads /> : <AccessDeniedMessage />;
       case 'apps':
-        // Todos pueden VER Apps Premium (aunque no descargar sin suscripción)
-        return <PremiumApps />;
+        return accessLevel.canAccessApps ? <PremiumApps /> : <AccessDeniedMessage />;
       case 'support':
         return accessLevel.canAccessSupport ? <Support /> : <AccessDeniedMessage />;
       case 'profile':
-        // Todos los usuarios autenticados pueden acceder a su perfil
         return <Profile />;
       default:
         return <Downloads />;

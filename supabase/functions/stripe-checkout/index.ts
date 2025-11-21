@@ -34,10 +34,21 @@ function corsResponse(body: string | object | null, status = 200) {
   });
 }
 
+// CORS headers para preflight
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS, GET',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Max-Age': '86400',
+};
+
 Deno.serve(async (req) => {
-  // Manejar preflight CORS
+  // Manejar preflight CORS PRIMERO, antes de cualquier otra cosa
   if (req.method === 'OPTIONS') {
-    return corsResponse({}, 204);
+    return new Response(null, {
+      status: 200,
+      headers: corsHeaders,
+    });
   }
 
   try {
