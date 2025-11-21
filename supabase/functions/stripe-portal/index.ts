@@ -73,15 +73,49 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    // Primero intentar obtener stripe_customer_id del perfil
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('stripe_customer_id')
       .eq('id', user.id)
       .maybeSingle();
 
-    if (profileError || !profile?.stripe_customer_id) {
+    let customerId: string | null = profile?.stripe_customer_id || null;
+
+    // Si no está en el perfil, buscar en stripe_customers
+    if (!customerId) {
+      console.log(`stripe_customer_id no encontrado en perfil para usuario ${user.id}, buscando en stripe_customers...`);
+      
+      const { data: customerData, error: customerError } = await supabase
+        .from('stripe_customers')
+        .select('customer_id')
+        .eq('user_id', user.id)
+        .is('deleted_at', null)
+        .maybeSingle();
+
+      if (customerError) {
+        console.error('Error buscando en stripe_customers:', customerError);
+      } else if (customerData?.customer_id) {
+        customerId = customerData.customer_id;
+        console.log(`Customer ID encontrado en stripe_customers: ${customerId}`);
+        
+        // Actualizar el perfil con el customer_id encontrado
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({ stripe_customer_id: customerId })
+          .eq('id', user.id);
+        
+        if (updateError) {
+          console.error('Error actualizando perfil con customer_id:', updateError);
+        } else {
+          console.log('Perfil actualizado con stripe_customer_id');
+        }
+      }
+    }
+
+    if (!customerId) {
       return new Response(
-        JSON.stringify({ error: 'No Stripe customer found' }),
+        JSON.stringify({ error: 'No Stripe customer found. Please contact support or subscribe first.' }),
         {
           status: 404,
           headers: {
@@ -93,7 +127,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const session = await stripe.billingPortal.sessions.create({
-      customer: profile.stripe_customer_id,
+      customer: customerId,
       return_url: `${req.headers.get('origin') || 'http://localhost:5173'}/portal/profile`,
     });
 
