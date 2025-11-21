@@ -105,4 +105,3 @@ export function SubscriptionCard({ product, isCurrentPlan = false }: Subscriptio
     </div>
   );
 }
-}
