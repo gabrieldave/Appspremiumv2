@@ -38,18 +38,23 @@ function AccessDeniedMessage() {
 
 export function Portal() {
   const [currentPage, setCurrentPage] = useState<PageType>('profile');
+  const [hasInitialRedirect, setHasInitialRedirect] = useState(false);
   const accessLevel = useAccessControl();
 
   useEffect(() => {
-    if (!accessLevel.loading) {
+    // Solo hacer redirección automática en la carga inicial, no cuando el usuario navega manualmente
+    if (!accessLevel.loading && !hasInitialRedirect) {
       // Si no tiene productos asignados (alpha lite o premium), llevarlo a Apps Premium
       if (!accessLevel.hasAnyProduct) {
         setCurrentPage('apps');
+        setHasInitialRedirect(true);
       } else if (accessLevel.canAccessDownloads && currentPage === 'profile') {
+        // Solo redirigir a downloads si está en profile (página inicial por defecto)
         setCurrentPage('downloads');
+        setHasInitialRedirect(true);
       }
     }
-  }, [accessLevel.loading, accessLevel.hasAnyProduct, accessLevel.canAccessDownloads, currentPage]);
+  }, [accessLevel.loading, accessLevel.hasAnyProduct, accessLevel.canAccessDownloads, hasInitialRedirect, currentPage]);
 
   const handleNavigate = (page: PageType) => {
     // Todos pueden acceder a apps y a su perfil
