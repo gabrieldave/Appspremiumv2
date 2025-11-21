@@ -2,14 +2,35 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import Stripe from 'npm:stripe@17.7.0';
 import { createClient } from 'npm:@supabase/supabase-js@2.49.1';
 
-const supabase = createClient(Deno.env.get('SUPABASE_URL') ?? '', Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '');
-const stripeSecret = Deno.env.get('STRIPE_SECRET_KEY')!;
-const stripe = new Stripe(stripeSecret, {
-  appInfo: {
-    name: 'Bolt Integration',
-    version: '1.0.0',
-  },
-});
+// Inicialización lazy para evitar errores en OPTIONS
+let supabaseClient: ReturnType<typeof createClient> | null = null;
+let stripeInstance: Stripe | null = null;
+
+function getSupabase() {
+  if (!supabaseClient) {
+    supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+  }
+  return supabaseClient;
+}
+
+function getStripe() {
+  if (!stripeInstance) {
+    const stripeSecret = Deno.env.get('STRIPE_SECRET_KEY');
+    if (!stripeSecret) {
+      throw new Error('STRIPE_SECRET_KEY no está configurada');
+    }
+    stripeInstance = new Stripe(stripeSecret, {
+      appInfo: {
+        name: 'Bolt Integration',
+        version: '1.0.0',
+      },
+    });
+  }
+  return stripeInstance;
+}
 
 // Helper function to create responses with CORS headers
 function corsResponse(body: string | object | null, status = 200) {
@@ -75,6 +96,7 @@ Deno.serve(async (req) => {
 
     const authHeader = req.headers.get('Authorization')!;
     const token = authHeader.replace('Bearer ', '');
+    const supabase = getSupabase();
     const {
       data: { user },
       error: getUserError,
@@ -106,6 +128,8 @@ Deno.serve(async (req) => {
     /**
      * In case we don't have a mapping yet, the customer does not exist and we need to create one.
      */
+    const stripe = getStripe();
+    
     if (!customer || !customer.customer_id) {
       const newCustomer = await stripe.customers.create({
         email: user.email,
