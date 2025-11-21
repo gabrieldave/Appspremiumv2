@@ -90,11 +90,12 @@ export function Profile() {
       }
 
       window.location.href = data.url;
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error creating checkout session:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Error al procesar la suscripción. Intenta de nuevo.';
       setMessage({
         type: 'error',
-        text: error.message || 'Error al procesar la suscripción. Intenta de nuevo.',
+        text: errorMessage,
       });
       setLoading(false);
     }
@@ -134,18 +135,28 @@ export function Profile() {
       }
 
       window.open(data.url, '_blank');
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error opening billing portal:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Error al acceder al portal de facturación. Intenta de nuevo.';
       setMessage({
         type: 'error',
-        text: error.message || 'Error al acceder al portal de facturación. Intenta de nuevo.',
+        text: errorMessage,
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const getStatusInfo = (status: string) => {
+  const getStatusInfo = (status: string, isAdmin: boolean) => {
+    // Si es admin, siempre mostrar como activa
+    if (isAdmin) {
+      return {
+        label: 'Activa (Admin)',
+        color: 'text-green-700 bg-green-100 border-green-200',
+        icon: CheckCircle,
+      };
+    }
+
     switch (status) {
       case 'active':
         return {
@@ -174,7 +185,9 @@ export function Profile() {
     }
   };
 
-  const statusInfo = getStatusInfo(profile?.subscription_status || 'inactive');
+  const isAdmin = profile?.is_admin === true;
+  const displayStatus = isAdmin ? 'active' : (profile?.subscription_status || 'inactive');
+  const statusInfo = getStatusInfo(displayStatus, isAdmin);
   const StatusIcon = statusInfo.icon;
 
   return (
@@ -334,7 +347,7 @@ export function Profile() {
                 </div>
               )}
 
-              {profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing' ? (
+              {isAdmin || profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing' ? (
                 <>
                   <button
                     onClick={handleManageBilling}
@@ -357,7 +370,7 @@ export function Profile() {
                     Administra tu suscripción y métodos de pago
                   </p>
                 </>
-              ) : (
+              ) : !isAdmin ? (
                 <>
                   {prices.length > 0 ? (
                     <>
@@ -403,7 +416,7 @@ export function Profile() {
                     </div>
                   )}
                 </>
-              )}
+              ) : null}
             </div>
           </div>
 

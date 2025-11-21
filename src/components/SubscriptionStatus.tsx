@@ -1,10 +1,12 @@
-import React from 'react';
 import { Crown, AlertCircle } from 'lucide-react';
 import { useSubscription } from '../hooks/useSubscription';
+import { useAuth } from '../contexts/AuthContext';
 import { getProductByPriceId } from '../stripe-config';
 
 export function SubscriptionStatus() {
   const { subscription, loading } = useSubscription();
+  const { profile } = useAuth();
+  const isAdmin = profile?.is_admin === true;
 
   if (loading) {
     return (
@@ -14,6 +16,21 @@ export function SubscriptionStatus() {
           <div className="flex-1 space-y-2 py-1">
             <div className="h-4 bg-gray-300 rounded w-3/4"></div>
             <div className="h-4 bg-gray-300 rounded w-1/2"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Si es admin, siempre mostrar como activo
+  if (isAdmin) {
+    return (
+      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+        <div className="flex items-center">
+          <Crown className="w-5 h-5 text-green-600 mr-3" />
+          <div>
+            <h3 className="text-sm font-medium text-green-800">Admin Access</h3>
+            <p className="text-sm text-green-700">Full access to all premium features</p>
           </div>
         </div>
       </div>
