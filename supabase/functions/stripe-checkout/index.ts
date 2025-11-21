@@ -18,16 +18,42 @@ function getSupabase() {
 
 function getStripe() {
   if (!stripeInstance) {
-    const stripeSecret = Deno.env.get('STRIPE_SECRET_KEY');
-    if (!stripeSecret) {
-      throw new Error('STRIPE_SECRET_KEY no está configurada');
+    const stripeSecretRaw = Deno.env.get('STRIPE_SECRET_KEY');
+    
+    // Logging para debug (sin exponer el valor completo)
+    if (!stripeSecretRaw) {
+      console.error('❌ STRIPE_SECRET_KEY no encontrada en variables de entorno');
+      console.error('Variables disponibles:', Object.keys(Deno.env.toObject()).filter(k => k.includes('STRIPE')));
+      throw new Error('STRIPE_SECRET_KEY no está configurada. Verifica las variables de entorno en Supabase Dashboard → Edge Functions → Settings → Secrets');
     }
-    stripeInstance = new Stripe(stripeSecret, {
-      appInfo: {
-        name: 'Bolt Integration',
-        version: '1.0.0',
-      },
-    });
+    
+    // Limpiar espacios en blanco
+    const stripeSecret = stripeSecretRaw.trim();
+    
+    // Verificar que la clave tenga el formato correcto
+    if (!stripeSecret.startsWith('sk_')) {
+      console.error('⚠️ STRIPE_SECRET_KEY no tiene el formato correcto (debe empezar con sk_)');
+      console.error('Longitud de la clave:', stripeSecret.length);
+      console.error('Primeros 5 caracteres:', stripeSecret.substring(0, 5));
+      throw new Error('STRIPE_SECRET_KEY tiene un formato inválido');
+    }
+    
+    console.log('✅ STRIPE_SECRET_KEY encontrada, inicializando Stripe...');
+    console.log('Longitud de la clave:', stripeSecret.length);
+    console.log('Prefijo de la clave:', stripeSecret.substring(0, 7) + '...');
+    
+    try {
+      stripeInstance = new Stripe(stripeSecret, {
+        appInfo: {
+          name: 'Bolt Integration',
+          version: '1.0.0',
+        },
+      });
+      console.log('✅ Stripe inicializado correctamente');
+    } catch (error: any) {
+      console.error('❌ Error al inicializar Stripe:', error.message);
+      throw error;
+    }
   }
   return stripeInstance;
 }
