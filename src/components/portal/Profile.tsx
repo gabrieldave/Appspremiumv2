@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { User, Mail, Key, CreditCard, CheckCircle, XCircle, Loader2, AlertCircle, Zap } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
@@ -7,10 +8,33 @@ import { useStripePrices } from '../../hooks/useStripePrices';
 export function Profile() {
   const { user, profile, updatePassword } = useAuth();
   const { prices } = useStripePrices();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Manejar parámetros de URL para mostrar mensajes de éxito/error
+  useEffect(() => {
+    const success = searchParams.get('success');
+    const canceled = searchParams.get('canceled');
+    
+    if (success === 'true') {
+      setMessage({
+        type: 'success',
+        text: '¡Pago procesado exitosamente! Tu suscripción está activa. Recibirás un correo de confirmación en breve.',
+      });
+      // Limpiar el parámetro de la URL
+      setSearchParams({}, { replace: true });
+    } else if (canceled === 'true') {
+      setMessage({
+        type: 'error',
+        text: 'El pago fue cancelado. Si tienes problemas, por favor contacta a soporte.',
+      });
+      // Limpiar el parámetro de la URL
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,7 +101,7 @@ export function Profile() {
           body: JSON.stringify({
             price_id: product.price_id,
             mode: product.mode,
-            success_url: `${window.location.origin}/portal/profile?success=true`,
+            success_url: `${window.location.origin}/success`,
             cancel_url: `${window.location.origin}/portal/profile?canceled=true`,
           }),
         }
