@@ -72,22 +72,35 @@ export function DownloadsManager() {
       for (const download of downloadsData) {
         const { data: userDownloads } = await supabase
           .from('user_downloads')
-          .select(`
-            user_id,
-            downloaded_at,
-            profiles(email)
-          `)
+          .select('user_id, downloaded_at')
           .eq('download_id', download.id);
 
-        if (userDownloads) {
+        if (userDownloads && userDownloads.length > 0) {
+          // Obtener emails de los usuarios
+          const userIds = userDownloads.map(ud => ud.user_id);
+          const { data: profilesData } = await supabase
+            .from('profiles')
+            .select('id, email')
+            .in('id', userIds);
+
+          // Crear un mapa de user_id -> email
+          const emailMap = new Map<string, string>();
+          profilesData?.forEach(profile => {
+            emailMap.set(profile.id, profile.email);
+          });
+
           stats[download.id] = {
             count: userDownloads.length,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            users: userDownloads.map((ud: any) => ({
+            users: userDownloads.map(ud => ({
               user_id: ud.user_id,
-              email: (ud.profiles && !Array.isArray(ud.profiles) ? ud.profiles.email : Array.isArray(ud.profiles) && ud.profiles[0]?.email) || 'N/A',
+              email: emailMap.get(ud.user_id) || 'N/A',
               downloaded_at: ud.downloaded_at,
             })),
+          };
+        } else {
+          stats[download.id] = {
+            count: 0,
+            users: [],
           };
         }
       }
