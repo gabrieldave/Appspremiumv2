@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
-import { Download, Grid2x2 as Grid, Headphones, Settings, Home, LogOut, Package, Users } from 'lucide-react';
+import { Download, Grid2x2 as Grid, Headphones, Home, LogOut, Package, Users } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 type AdminLayoutProps = {
   children: ReactNode;
@@ -18,6 +19,12 @@ const navigation = [
 
 export function AdminLayout({ children, currentSection, onNavigate }: AdminLayoutProps) {
   const { signOut, profile } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
 
   return (
     <div className="min-h-screen bg-slate-100">
@@ -45,7 +52,7 @@ export function AdminLayout({ children, currentSection, onNavigate }: AdminLayou
                 <span className="hidden sm:inline">Ir al Portal</span>
               </a>
               <button
-                onClick={signOut}
+                onClick={handleSignOut}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-red-300 hover:bg-red-900/30 transition-colors"
               >
                 <LogOut className="w-4 h-4" />
