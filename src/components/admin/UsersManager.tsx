@@ -416,7 +416,7 @@ export function UsersManager() {
                       >
                         {user.is_admin ? 'Quitar Admin' : 'Hacer Admin'}
                       </button>
-                      {user.stripe_customer_id && (
+                      {(user.stripe_customer_id || user.subscription_status !== 'inactive') && (
                         <button
                           onClick={() => syncSubscription(user.id, user.email)}
                           className="px-3 py-1 rounded-lg text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors flex items-center gap-1"
