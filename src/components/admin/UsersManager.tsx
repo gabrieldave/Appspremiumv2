@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Users, Crown, Mail, Calendar, CheckCircle, XCircle, Shield, Trash2, UserPlus, X, XOctagon } from 'lucide-react';
+import { Users, Crown, Mail, Calendar, CheckCircle, XCircle, Shield, Trash2, UserPlus, X, XOctagon, RefreshCw } from 'lucide-react';
 
 interface User {
   id: string;
@@ -117,6 +117,35 @@ export function UsersManager() {
     } catch (error: any) {
       console.error('Error removing product assignment:', error);
       alert('Error eliminando asignación: ' + error.message);
+    }
+  }
+
+  async function syncSubscription(userId: string, userEmail: string) {
+    if (!confirm(`¿Sincronizar la suscripción de ${userEmail}?\n\nEsta acción:\n- Consultará Stripe para obtener el estado actual\n- Actualizará la base de datos con el estado correcto\n- Útil si la suscripción no se sincronizó automáticamente`)) return;
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/sync-subscription`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session?.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Error sincronizando suscripción');
+      }
+
+      await loadUsers();
+      alert(`Suscripción sincronizada exitosamente.\n\nEstado: ${result.subscription?.status || 'N/A'}\nID: ${result.subscription?.id || 'N/A'}`);
+    } catch (error: any) {
+      console.error('Error syncing subscription:', error);
+      alert('Error sincronizando suscripción: ' + error.message);
     }
   }
 
@@ -387,6 +416,16 @@ export function UsersManager() {
                       >
                         {user.is_admin ? 'Quitar Admin' : 'Hacer Admin'}
                       </button>
+                      {user.stripe_customer_id && (
+                        <button
+                          onClick={() => syncSubscription(user.id, user.email)}
+                          className="px-3 py-1 rounded-lg text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors flex items-center gap-1"
+                          title="Sincronizar suscripción desde Stripe"
+                        >
+                          <RefreshCw className="w-3 h-3" />
+                          Sincronizar
+                        </button>
+                      )}
                       {user.subscription_status === 'active' && (
                         <button
                           onClick={() => cancelSubscription(user.id, user.email)}
