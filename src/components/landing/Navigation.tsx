@@ -59,11 +59,11 @@ export function Navigation({ onGetStarted }: NavigationProps) {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-6">
-            {/* Social Media Links */}
+          <div className="hidden md:flex items-center gap-4">
+            {/* Social Media Links - Más visibles */}
             {!loading && socialLinks.length > 0 && (
-              <div className="flex items-center gap-3 px-4 py-2 border-r border-slate-200">
-                {socialLinks.slice(0, 4).map((link) => {
+              <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-lg border border-slate-200">
+                {socialLinks.slice(0, 6).map((link) => {
                   const Icon = getIcon(link.icon_name);
                   return (
                     <a
@@ -71,13 +71,17 @@ export function Navigation({ onGetStarted }: NavigationProps) {
                       href={link.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-slate-600 hover:text-cyan-600 transition-colors"
+                      className="text-slate-600 hover:text-cyan-600 transition-colors p-1.5 hover:bg-white rounded"
                       aria-label={link.platform}
+                      title={link.platform}
                     >
                       <Icon className="w-5 h-5" />
                     </a>
                   );
                 })}
+                {socialLinks.length > 6 && (
+                  <span className="text-xs text-slate-500 px-2">+{socialLinks.length - 6}</span>
+                )}
               </div>
             )}
 
@@ -123,9 +127,9 @@ export function Navigation({ onGetStarted }: NavigationProps) {
             <div className="flex flex-col gap-4">
               {/* Social Media Links Mobile */}
               {!loading && socialLinks.length > 0 && (
-                <div className="flex items-center gap-4 px-2 py-3 border-b border-slate-200">
-                  <span className="text-sm font-medium text-slate-600">Redes Sociales:</span>
-                  <div className="flex items-center gap-3">
+                <div className="px-2 py-3 border-b border-slate-200">
+                  <span className="text-sm font-medium text-slate-600 mb-2 block">Redes Sociales:</span>
+                  <div className="flex flex-wrap items-center gap-3">
                     {socialLinks.map((link) => {
                       const Icon = getIcon(link.icon_name);
                       return (
@@ -134,10 +138,11 @@ export function Navigation({ onGetStarted }: NavigationProps) {
                           href={link.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-slate-600 hover:text-cyan-600 transition-colors"
+                          className="flex items-center gap-2 text-slate-600 hover:text-cyan-600 transition-colors p-2 bg-slate-50 rounded-lg hover:bg-slate-100"
                           aria-label={link.platform}
                         >
-                          <Icon className="w-5 h-5" />
+                          <Icon className="w-4 h-4" />
+                          <span className="text-xs">{link.platform}</span>
                         </a>
                       );
                     })}
