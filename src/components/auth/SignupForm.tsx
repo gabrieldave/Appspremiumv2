@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { supabase } from '../../lib/supabase';
+import React, { useState, useEffect, useRef } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
 import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
 
 interface SignupFormProps {
@@ -7,6 +7,7 @@ interface SignupFormProps {
 }
 
 export function SignupForm({ onSuccess }: SignupFormProps) {
+  const { signUp, profile, loading: authLoading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -14,6 +15,35 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [waitingForProfile, setWaitingForProfile] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Esperar a que el perfil esté listo después del registro
+  useEffect(() => {
+    if (waitingForProfile && profile && !authLoading) {
+      // Limpiar timeout si existe
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+      
+      // Perfil listo, proceder con la navegación
+      setWaitingForProfile(false);
+      setLoading(false);
+      setMessage({ type: 'success', text: 'Account created successfully!' });
+      // Pequeño delay para mostrar el mensaje de éxito
+      setTimeout(() => {
+        onSuccess?.();
+      }, 500);
+    }
+    
+    // Cleanup del timeout al desmontar
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [profile, authLoading, waitingForProfile, onSuccess]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,23 +63,29 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
     }
 
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: undefined, // Disable email confirmation
-        }
-      });
+      const { error } = await signUp(email, password);
 
       if (error) {
         setMessage({ type: 'error', text: error.message });
+        setLoading(false);
       } else {
-        setMessage({ type: 'success', text: 'Account created successfully!' });
-        onSuccess?.();
+        // Esperar a que el perfil esté listo antes de navegar
+        setWaitingForProfile(true);
+        setMessage({ type: 'success', text: 'Creating your account...' });
+        
+        // Timeout de seguridad: si el perfil no está listo en 10 segundos, navegar de todas formas
+        timeoutRef.current = setTimeout(() => {
+          console.warn('Profile loading timeout, proceeding anyway');
+          setWaitingForProfile(false);
+          setLoading(false);
+          setMessage({ type: 'success', text: 'Account created successfully!' });
+          setTimeout(() => {
+            onSuccess?.();
+          }, 500);
+        }, 10000);
       }
-    } catch (error) {
-      setMessage({ type: 'error', text: 'An unexpected error occurred' });
-    } finally {
+    } catch (error: any) {
+      setMessage({ type: 'error', text: error.message || 'An unexpected error occurred' });
       setLoading(false);
     }
   };
@@ -137,10 +173,10 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
 
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || waitingForProfile}
           className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          {loading ? 'Creating account...' : 'Create Account'}
+          {loading || waitingForProfile ? 'Creating account...' : 'Create Account'}
         </button>
       </form>
     </div>

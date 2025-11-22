@@ -22,27 +22,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = async (userId: string, retries = 3, delay = 1000) => {
     console.log('Fetching profile for user:', userId);
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .maybeSingle();
+    
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .maybeSingle();
 
-    console.log('Profile query result:', { data, error });
+        if (error) {
+          console.error(`Error loading profile (attempt ${attempt}/${retries}):`, error);
+          if (attempt < retries) {
+            // Esperar antes de reintentar, con backoff exponencial
+            await new Promise(resolve => setTimeout(resolve, delay * attempt));
+            continue;
+          }
+          return;
+        }
 
-    if (error) {
-      console.error('Error loading profile:', error);
-      return;
+        if (data) {
+          console.log('Profile loaded successfully:', data);
+          setProfile(data);
+          return;
+        } else {
+          console.warn(`No profile found for user (attempt ${attempt}/${retries}):`, userId);
+          if (attempt < retries) {
+            // Esperar antes de reintentar, el trigger puede estar procesando
+            await new Promise(resolve => setTimeout(resolve, delay * attempt));
+            continue;
+          }
+        }
+      } catch (err) {
+        console.error(`Exception loading profile (attempt ${attempt}/${retries}):`, err);
+        if (attempt < retries) {
+          await new Promise(resolve => setTimeout(resolve, delay * attempt));
+          continue;
+        }
+      }
     }
-
-    if (data) {
-      console.log('Profile loaded successfully:', data);
-      setProfile(data);
-    } else {
-      console.warn('No profile found for user:', userId);
-    }
+    
+    console.warn('Profile not found after all retries for user:', userId);
   };
 
   const refreshProfile = async () => {
@@ -108,32 +130,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           email: data?.user?.email,
         });
 
-        // Enviar email de bienvenida automáticamente
+        // Enviar email de bienvenida automáticamente (completamente asíncrono, no bloquea)
         if (data?.user) {
-          try {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-              // Llamar a la Edge Function para enviar emails
-              fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-welcome-email`, {
-                method: 'POST',
-                headers: {
-                  'Authorization': `Bearer ${session.access_token}`,
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  email: data.user.email || email,
-                  userId: data.user.id,
-                  createdAt: data.user.created_at || new Date().toISOString(),
-                }),
-              }).catch((emailError) => {
-                console.error('Error enviando email de bienvenida:', emailError);
-                // No bloquear el registro si falla el email
-              });
+          // Usar setTimeout para hacer esto completamente asíncrono y no bloquear
+          setTimeout(async () => {
+            try {
+              // Esperar un poco para asegurar que la sesión esté lista
+              await new Promise(resolve => setTimeout(resolve, 500));
+              
+              const { data: { session } } = await supabase.auth.getSession();
+              if (session) {
+                // Llamar a la Edge Function para enviar emails (sin await para no bloquear)
+                fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-welcome-email`, {
+                  method: 'POST',
+                  headers: {
+                    'Authorization': `Bearer ${session.access_token}`,
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    email: data.user.email || email,
+                    userId: data.user.id,
+                    createdAt: data.user.created_at || new Date().toISOString(),
+                  }),
+                }).catch((emailError) => {
+                  console.error('Error enviando email de bienvenida:', emailError);
+                  // No bloquear el registro si falla el email
+                });
+              }
+            } catch (emailError) {
+              console.error('Error al llamar Edge Function:', emailError);
+              // No bloquear el registro si falla el email
             }
-          } catch (emailError) {
-            console.error('Error al llamar Edge Function:', emailError);
-            // No bloquear el registro si falla el email
-          }
+          }, 0);
         }
       }
       
