@@ -16,6 +16,10 @@ SECURITY DEFINER
 SET search_path = public, auth
 AS $$
 BEGIN
+  -- Deshabilitar RLS temporalmente para esta inserción
+  -- SECURITY DEFINER debería ser suficiente, pero esto asegura que funcione
+  SET LOCAL row_security = off;
+  
   -- Intentar insertar el perfil, pero no fallar si ya existe o hay un error
   INSERT INTO public.profiles (id, email)
   VALUES (new.id, new.email)
@@ -36,4 +40,5 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION handle_new_user();
+
 
