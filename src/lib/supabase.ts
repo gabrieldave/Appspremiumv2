@@ -102,6 +102,7 @@ export type PremiumApp = {
   image_url: string;
   video_url: string | null;
   download_url: string;
+  web_app_url: string | null;
   category: string;
   is_active: boolean;
   sort_order: number;

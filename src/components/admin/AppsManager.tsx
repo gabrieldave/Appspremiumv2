@@ -8,6 +8,7 @@ type FormData = {
   image_url: string;
   video_url: string | null;
   download_url: string;
+  web_app_url: string | null;
   category: string;
   sort_order: number;
   is_active: boolean;
@@ -26,6 +27,7 @@ export function AppsManager() {
     image_url: '',
     video_url: null,
     download_url: '',
+    web_app_url: null,
     category: '',
     sort_order: 0,
     is_active: true,
@@ -57,10 +59,11 @@ export function AppsManager() {
     setMessage(null);
 
     try {
-      // Preparar datos para insertar/actualizar (convertir string vacío a null para video_url)
+      // Preparar datos para insertar/actualizar (convertir string vacío a null para video_url y web_app_url)
       const dataToSave = {
         ...formData,
         video_url: formData.video_url && formData.video_url.trim() !== '' ? formData.video_url.trim() : null,
+        web_app_url: formData.web_app_url && formData.web_app_url.trim() !== '' ? formData.web_app_url.trim() : null,
       };
 
       if (editingId) {
@@ -115,6 +118,7 @@ export function AppsManager() {
       image_url: app.image_url,
       video_url: app.video_url || null,
       download_url: app.download_url,
+      web_app_url: app.web_app_url || null,
       category: app.category,
       sort_order: app.sort_order,
       is_active: app.is_active,
@@ -151,6 +155,7 @@ export function AppsManager() {
       image_url: '',
       video_url: null,
       download_url: '',
+      web_app_url: null,
       category: '',
       sort_order: 0,
       is_active: true,
@@ -320,6 +325,22 @@ export function AppsManager() {
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                 placeholder="https://tudominio.com/archivos/app.zip"
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
+                URL de App Web (opcional)
+              </label>
+              <input
+                type="url"
+                value={formData.web_app_url || ''}
+                onChange={(e) => setFormData({ ...formData, web_app_url: e.target.value || null })}
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                placeholder="https://tudominio.com/app-web"
+              />
+              <p className="mt-1 text-sm text-slate-500">
+                Si se proporciona, se mostrará un botón "APP WEB" para usuarios sin Android
+              </p>
             </div>
 
             <div>
