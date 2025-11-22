@@ -265,7 +265,7 @@ export function UsersManager() {
         email: newUserEmail.trim(),
         password: newUserPassword,
         options: {
-          emailRedirectTo: window.location.origin,
+          emailRedirectTo: undefined, // Deshabilitar confirmación de email
         }
       });
 
