@@ -8,9 +8,9 @@ const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
 const ADMIN_EMAIL = Deno.env.get('ADMIN_EMAIL') || 'admin@todossomostraders.com';
 const SITE_URL = Deno.env.get('SITE_URL') || 'https://todossomostraders.com';
 // Usar dominio verificado de Resend o el configurado
-// Si RESEND_FROM_EMAIL no está configurado, usar el dominio de prueba de Resend (siempre funciona)
+// Si RESEND_FROM_EMAIL no está configurado, usar el dominio verificado mail.codextrader.tech
 // Asegurar formato correcto: email@example.com
-const RESEND_FROM_EMAIL_RAW = Deno.env.get('RESEND_FROM_EMAIL') || 'onboarding@resend.dev';
+const RESEND_FROM_EMAIL_RAW = Deno.env.get('RESEND_FROM_EMAIL') || 'noreply@mail.codextrader.tech';
 const RESEND_FROM_EMAIL = RESEND_FROM_EMAIL_RAW.trim();
 
 const stripe = new Stripe(stripeSecret, {
