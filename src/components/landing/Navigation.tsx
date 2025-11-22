@@ -24,10 +24,21 @@ export function Navigation({ onGetStarted }: NavigationProps) {
         .eq('is_active', true)
         .order('sort_order', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading social links:', error);
+        // Si la tabla no existe, mostrar mensaje en consola
+        if (error.code === 'PGRST116' || error.message.includes('does not exist')) {
+          console.warn('⚠️ La tabla social_media_links no existe. Aplica la migración: 20251125000000_create_promotions_table.sql');
+        }
+        setSocialLinks([]);
+        return;
+      }
+      
+      console.log('✅ Redes sociales cargadas:', data?.length || 0);
       setSocialLinks(data || []);
     } catch (error) {
       console.error('Error loading social links:', error);
+      setSocialLinks([]);
     } finally {
       setLoading(false);
     }
@@ -61,7 +72,11 @@ export function Navigation({ onGetStarted }: NavigationProps) {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-4">
             {/* Social Media Links - Más visibles */}
-            {!loading && socialLinks.length > 0 && (
+            {loading ? (
+              <div className="flex items-center gap-2 px-3 py-2">
+                <div className="w-5 h-5 border-2 border-slate-300 border-t-cyan-600 rounded-full animate-spin"></div>
+              </div>
+            ) : socialLinks.length > 0 ? (
               <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-lg border border-slate-200">
                 {socialLinks.slice(0, 6).map((link) => {
                   const Icon = getIcon(link.icon_name);
@@ -82,6 +97,10 @@ export function Navigation({ onGetStarted }: NavigationProps) {
                 {socialLinks.length > 6 && (
                   <span className="text-xs text-slate-500 px-2">+{socialLinks.length - 6}</span>
                 )}
+              </div>
+            ) : (
+              <div className="text-xs text-slate-400 px-2" title="No hay redes sociales configuradas. Ve al panel admin para agregarlas.">
+                Sin redes
               </div>
             )}
 
