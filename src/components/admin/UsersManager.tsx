@@ -182,28 +182,58 @@ export function UsersManager() {
     if (!confirm(`¿ELIMINAR PERMANENTEMENTE al usuario ${userEmail}?\n\nEsta acción NO se puede deshacer y eliminará:\n- El usuario de autenticación\n- Su perfil\n- Todas sus asignaciones de productos\n- Su información de Stripe`)) return;
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-user`, {
+      if (sessionError || !session) {
+        throw new Error('No hay sesión activa. Por favor, inicia sesión nuevamente.');
+      }
+
+      if (!session.access_token) {
+        throw new Error('Token de acceso no disponible. Por favor, inicia sesión nuevamente.');
+      }
+
+      const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-user`;
+      console.log('Eliminando usuario:', { userId, functionUrl });
+
+      const response = await fetch(functionUrl, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${session?.access_token}`,
+          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ userId }),
       });
 
-      const result = await response.json();
+      // Verificar si la respuesta es JSON válido
+      let result;
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        result = await response.json();
+      } else {
+        const text = await response.text();
+        throw new Error(`Respuesta inesperada del servidor: ${text || response.statusText}`);
+      }
 
       if (!response.ok) {
-        throw new Error(result.error || 'Error eliminando usuario');
+        throw new Error(result.error || `Error del servidor: ${response.status} ${response.statusText}`);
       }
 
       await loadUsers();
       alert('Usuario eliminado permanentemente');
     } catch (error: any) {
       console.error('Error deleting user:', error);
-      alert('Error eliminando usuario: ' + error.message);
+      
+      let errorMessage = 'Error eliminando usuario: ';
+      
+      if (error.message) {
+        errorMessage += error.message;
+      } else if (error instanceof TypeError && error.message.includes('fetch')) {
+        errorMessage += 'No se pudo conectar con el servidor. Verifica tu conexión a internet o que la función esté desplegada.';
+      } else {
+        errorMessage += 'Error desconocido. Por favor, intenta nuevamente.';
+      }
+      
+      alert(errorMessage);
     }
   }
 

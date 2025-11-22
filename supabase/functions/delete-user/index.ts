@@ -112,12 +112,13 @@ Deno.serve(async (req: Request) => {
         },
       }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error:", error);
+    const errorMessage = error?.message || error?.toString() || "Unknown error occurred";
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: errorMessage }),
       {
-        status: 400,
+        status: error?.status || 400,
         headers: {
           ...corsHeaders,
           "Content-Type": "application/json",
