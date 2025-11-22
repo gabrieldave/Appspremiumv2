@@ -119,3 +119,26 @@ export type SupportLink = {
   is_active: boolean;
   created_at: string;
 };
+
+export type Promotion = {
+  id: string;
+  title: string;
+  description: string;
+  image_url: string;
+  video_url: string | null;
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type SocialMediaLink = {
+  id: string;
+  platform: string;
+  url: string;
+  icon_name: string;
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};

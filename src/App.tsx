@@ -8,7 +8,6 @@ import { SignupPage } from './pages/SignupPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { PricingPage } from './pages/PricingPage';
 import { SuccessPage } from './pages/SuccessPage';
-import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminRoute } from './components/admin/AdminRoute';
 import { Loader2 } from 'lucide-react';
@@ -29,7 +28,6 @@ function AppContent() {
       <Routes>
         <Route path="/login" element={user ? <Navigate to="/portal" replace /> : <LoginPage />} />
         <Route path="/signup" element={user ? <Navigate to="/portal" replace /> : <SignupPage />} />
-        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/success" element={<SuccessPage />} />
         <Route

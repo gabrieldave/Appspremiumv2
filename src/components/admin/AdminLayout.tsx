@@ -1,12 +1,12 @@
 import { ReactNode } from 'react';
-import { Download, Grid2x2 as Grid, Headphones, Home, LogOut, Package, Users } from 'lucide-react';
+import { Download, Grid2x2 as Grid, Headphones, Home, LogOut, Package, Users, Tag, Share2 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 type AdminLayoutProps = {
   children: ReactNode;
-  currentSection: 'mt4' | 'downloads' | 'apps' | 'support' | 'users';
-  onNavigate: (section: 'mt4' | 'downloads' | 'apps' | 'support' | 'users') => void;
+  currentSection: 'mt4' | 'downloads' | 'apps' | 'support' | 'users' | 'promotions' | 'social';
+  onNavigate: (section: 'mt4' | 'downloads' | 'apps' | 'support' | 'users' | 'promotions' | 'social') => void;
 };
 
 const navigation = [
@@ -15,6 +15,8 @@ const navigation = [
   { id: 'downloads' as const, label: 'Gestionar Descargas', icon: Download },
   { id: 'apps' as const, label: 'Gestionar Apps', icon: Grid },
   { id: 'support' as const, label: 'Gestionar Soporte', icon: Headphones },
+  { id: 'promotions' as const, label: 'Promociones', icon: Tag },
+  { id: 'social' as const, label: 'Redes Sociales', icon: Share2 },
 ];
 
 export function AdminLayout({ children, currentSection, onNavigate }: AdminLayoutProps) {

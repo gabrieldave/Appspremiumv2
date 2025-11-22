@@ -4,9 +4,11 @@ import { DownloadsManager } from '../components/admin/DownloadsManager';
 import { AppsManager } from '../components/admin/AppsManager';
 import { SupportManager } from '../components/admin/SupportManager';
 import { UsersManager } from '../components/admin/UsersManager';
+import { PromotionsManager } from '../components/admin/PromotionsManager';
+import { SocialMediaManager } from '../components/admin/SocialMediaManager';
 import MT4ProductsManager from '../components/admin/MT4ProductsManager';
 
-type SectionType = 'downloads' | 'apps' | 'support' | 'mt4' | 'users';
+type SectionType = 'downloads' | 'apps' | 'support' | 'mt4' | 'users' | 'promotions' | 'social';
 
 export function AdminPage() {
   const [currentSection, setCurrentSection] = useState<SectionType>('users');
@@ -23,6 +25,10 @@ export function AdminPage() {
         return <AppsManager />;
       case 'support':
         return <SupportManager />;
+      case 'promotions':
+        return <PromotionsManager />;
+      case 'social':
+        return <SocialMediaManager />;
       default:
         return <UsersManager />;
     }
