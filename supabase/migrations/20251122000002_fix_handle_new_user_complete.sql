@@ -57,3 +57,4 @@ CREATE POLICY "Allow profile creation for new users"
   WITH CHECK (true);
 
 
+

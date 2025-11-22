@@ -163,3 +163,4 @@ const response = await fetch(`${supabaseUrl}/functions/v1/stripe-checkout`, {
 
 
 
+
