@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Plus, Edit2, Trash2, Save, X, Loader2, Image, Video, Eye, EyeOff } from 'lucide-react';
-import { supabase, Promotion } from '../../lib/supabase';
+import { supabase, Promotion, PromotionImage } from '../../lib/supabase';
 
 type FormData = {
   title: string;
@@ -9,6 +9,7 @@ type FormData = {
   video_url: string;
   sort_order: number;
   is_active: boolean;
+  additional_images: string[]; // Array de URLs de imágenes adicionales
 };
 
 export function PromotionsManager() {
@@ -25,7 +26,9 @@ export function PromotionsManager() {
     video_url: '',
     sort_order: 0,
     is_active: true,
+    additional_images: ['', '', '', ''], // 4 campos para imágenes adicionales
   });
+  const [promotionImages, setPromotionImages] = useState<Record<string, PromotionImage[]>>({});
 
   useEffect(() => {
     fetchPromotions();
@@ -43,6 +46,19 @@ export function PromotionsManager() {
       setMessage({ type: 'error', text: `Error al cargar promociones: ${error.message}` });
     } else if (data) {
       setPromotions(data);
+      // Cargar imágenes adicionales para cada promoción
+      const imagesMap: Record<string, PromotionImage[]> = {};
+      for (const promo of data) {
+        const { data: images } = await supabase
+          .from('promotion_images')
+          .select('*')
+          .eq('promotion_id', promo.id)
+          .order('sort_order', { ascending: true });
+        if (images) {
+          imagesMap[promo.id] = images;
+        }
+      }
+      setPromotionImages(imagesMap);
     }
     setLoading(false);
   };
@@ -54,44 +70,79 @@ export function PromotionsManager() {
 
     try {
       const dataToSave = {
-        ...formData,
+        title: formData.title,
+        description: formData.description,
+        image_url: formData.image_url,
         video_url: formData.video_url && formData.video_url.trim() !== '' ? formData.video_url.trim() : null,
+        sort_order: formData.sort_order,
+        is_active: formData.is_active,
       };
 
+      let promotionId: string;
+
       if (editingId) {
-        const { error } = await supabase
+        const { error, data } = await supabase
           .from('promotions')
           .update(dataToSave)
-          .eq('id', editingId);
+          .eq('id', editingId)
+          .select()
+          .single();
 
         if (error) {
           console.error('Error updating promotion:', error);
           setMessage({ type: 'error', text: `Error al actualizar: ${error.message}` });
-        } else {
-          setMessage({ type: 'success', text: 'Promoción actualizada exitosamente' });
-          await fetchPromotions();
-          setTimeout(() => {
-            resetForm();
-            setMessage(null);
-          }, 1500);
+          setSaving(false);
+          return;
         }
+        promotionId = editingId;
+
+        // Eliminar imágenes existentes
+        await supabase
+          .from('promotion_images')
+          .delete()
+          .eq('promotion_id', promotionId);
       } else {
-        const { error } = await supabase
+        const { error, data } = await supabase
           .from('promotions')
-          .insert([dataToSave]);
+          .insert([dataToSave])
+          .select()
+          .single();
 
         if (error) {
           console.error('Error creating promotion:', error);
           setMessage({ type: 'error', text: `Error al crear: ${error.message}` });
-        } else {
-          setMessage({ type: 'success', text: 'Promoción creada exitosamente' });
-          await fetchPromotions();
-          setTimeout(() => {
-            resetForm();
-            setMessage(null);
-          }, 1500);
+          setSaving(false);
+          return;
+        }
+        promotionId = data.id;
+      }
+
+      // Guardar imágenes adicionales (solo las que tienen URL)
+      const imagesToSave = formData.additional_images
+        .filter(url => url && url.trim() !== '')
+        .map((url, index) => ({
+          promotion_id: promotionId,
+          image_url: url.trim(),
+          sort_order: index + 1,
+        }));
+
+      if (imagesToSave.length > 0) {
+        const { error: imagesError } = await supabase
+          .from('promotion_images')
+          .insert(imagesToSave);
+
+        if (imagesError) {
+          console.error('Error saving images:', imagesError);
+          setMessage({ type: 'error', text: `Promoción guardada pero error al guardar imágenes: ${imagesError.message}` });
         }
       }
+
+      setMessage({ type: 'success', text: editingId ? 'Promoción actualizada exitosamente' : 'Promoción creada exitosamente' });
+      await fetchPromotions();
+      setTimeout(() => {
+        resetForm();
+        setMessage(null);
+      }, 1500);
     } catch (error: any) {
       console.error('Error saving promotion:', error);
       setMessage({ type: 'error', text: `Error: ${error.message}` });
@@ -102,6 +153,13 @@ export function PromotionsManager() {
 
   const handleEdit = (promotion: Promotion) => {
     setEditingId(promotion.id);
+    const images = promotionImages[promotion.id] || [];
+    const additionalImages = images.map(img => img.image_url);
+    // Rellenar hasta 4 imágenes
+    while (additionalImages.length < 4) {
+      additionalImages.push('');
+    }
+    
     setFormData({
       title: promotion.title,
       description: promotion.description,
@@ -109,6 +167,7 @@ export function PromotionsManager() {
       video_url: promotion.video_url || '',
       sort_order: promotion.sort_order,
       is_active: promotion.is_active,
+      additional_images: additionalImages.slice(0, 4),
     });
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -142,9 +201,16 @@ export function PromotionsManager() {
       video_url: '',
       sort_order: 0,
       is_active: true,
+      additional_images: ['', '', '', ''],
     });
     setEditingId(null);
     setShowForm(false);
+  };
+
+  const updateAdditionalImage = (index: number, value: string) => {
+    const newImages = [...formData.additional_images];
+    newImages[index] = value;
+    setFormData({ ...formData, additional_images: newImages });
   };
 
   if (loading) {
@@ -231,7 +297,7 @@ export function PromotionsManager() {
 
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">
-                URL de Imagen *
+                URL de Imagen Principal *
               </label>
               <div className="flex gap-2">
                 <input
@@ -254,6 +320,39 @@ export function PromotionsManager() {
                   </a>
                 )}
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Imágenes Adicionales (Opcional - hasta 4)
+              </label>
+              <div className="space-y-2">
+                {formData.additional_images.map((url, index) => (
+                  <div key={index} className="flex gap-2">
+                    <input
+                      type="url"
+                      value={url}
+                      onChange={(e) => updateAdditionalImage(index, e.target.value)}
+                      className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                      placeholder={`URL de imagen adicional ${index + 1} (opcional)`}
+                    />
+                    {url && (
+                      <a
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+                      >
+                        <Image className="w-4 h-4" />
+                        Ver
+                      </a>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-slate-500 mt-1">
+                Puedes agregar hasta 4 imágenes adicionales que se mostrarán junto con la imagen principal
+              </p>
             </div>
 
             <div>

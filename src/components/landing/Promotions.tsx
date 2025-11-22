@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { ChevronDown, ChevronUp, Play, Image as ImageIcon } from 'lucide-react';
-import { supabase, type Promotion } from '../../lib/supabase';
+import { supabase, type Promotion, type PromotionImage } from '../../lib/supabase';
 
 export function Promotions() {
   const [promotions, setPromotions] = useState<Promotion[]>([]);
+  const [promotionImages, setPromotionImages] = useState<Record<string, PromotionImage[]>>({});
   const [expandedPromotions, setExpandedPromotions] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
 
@@ -21,6 +22,20 @@ export function Promotions() {
 
       if (error) throw error;
       setPromotions(data || []);
+
+      // Cargar imágenes adicionales para cada promoción
+      const imagesMap: Record<string, PromotionImage[]> = {};
+      for (const promo of data || []) {
+        const { data: images } = await supabase
+          .from('promotion_images')
+          .select('*')
+          .eq('promotion_id', promo.id)
+          .order('sort_order', { ascending: true });
+        if (images) {
+          imagesMap[promo.id] = images;
+        }
+      }
+      setPromotionImages(imagesMap);
     } catch (error) {
       console.error('Error loading promotions:', error);
     } finally {
@@ -141,19 +156,40 @@ export function Promotions() {
                       </p>
                     </div>
 
-                    {/* Image */}
-                    {promotion.image_url && (
-                      <div className="rounded-lg overflow-hidden">
-                        <img
-                          src={promotion.image_url}
-                          alt={promotion.title}
-                          className="w-full h-auto object-cover"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = 'none';
-                          }}
-                        />
-                      </div>
-                    )}
+                    {/* Images - Principal y adicionales */}
+                    <div className="space-y-4">
+                      {/* Imagen Principal */}
+                      {promotion.image_url && (
+                        <div className="rounded-lg overflow-hidden">
+                          <img
+                            src={promotion.image_url}
+                            alt={promotion.title}
+                            className="w-full h-auto object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
+                        </div>
+                      )}
+
+                      {/* Imágenes Adicionales */}
+                      {promotionImages[promotion.id] && promotionImages[promotion.id].length > 0 && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {promotionImages[promotion.id].map((img) => (
+                            <div key={img.id} className="rounded-lg overflow-hidden">
+                              <img
+                                src={img.image_url}
+                                alt={`${promotion.title} - Imagen ${img.sort_order}`}
+                                className="w-full h-auto object-cover"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).style.display = 'none';
+                                }}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
 
                     {/* Video */}
                     {videoEmbedUrl && (
