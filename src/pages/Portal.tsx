@@ -37,24 +37,27 @@ function AccessDeniedMessage() {
 }
 
 export function Portal() {
-  const [currentPage, setCurrentPage] = useState<PageType>('profile');
+  // Cambiar el estado inicial a 'apps' para que los nuevos usuarios vean Apps Premium primero
+  const [currentPage, setCurrentPage] = useState<PageType>('apps');
   const [hasInitialRedirect, setHasInitialRedirect] = useState(false);
   const accessLevel = useAccessControl();
 
   useEffect(() => {
     // Solo hacer redirección automática en la carga inicial, no cuando el usuario navega manualmente
     if (!accessLevel.loading && !hasInitialRedirect) {
-      // Si no tiene productos asignados (alpha lite o premium), llevarlo a Apps Premium
-      if (!accessLevel.hasAnyProduct) {
-        setCurrentPage('apps');
+      // Por defecto, todos los usuarios nuevos van a Apps Premium
+      // Solo si tienen suscripción activa Y acceso a downloads, pueden ir a downloads
+      if (accessLevel.canAccessDownloads && accessLevel.hasActiveSubscription) {
+        // Usuarios con suscripción activa pueden ir a downloads si quieren
+        // Pero por defecto los mantenemos en apps para que vean las apps premium
         setHasInitialRedirect(true);
-      } else if (accessLevel.canAccessDownloads && currentPage === 'profile') {
-        // Solo redirigir a downloads si está en profile (página inicial por defecto)
-        setCurrentPage('downloads');
+      } else {
+        // Usuarios sin suscripción o sin acceso a downloads: Apps Premium
+        setCurrentPage('apps');
         setHasInitialRedirect(true);
       }
     }
-  }, [accessLevel.loading, accessLevel.hasAnyProduct, accessLevel.canAccessDownloads, hasInitialRedirect, currentPage]);
+  }, [accessLevel.loading, accessLevel.hasAnyProduct, accessLevel.canAccessDownloads, accessLevel.hasActiveSubscription, hasInitialRedirect]);
 
   const handleNavigate = (page: PageType) => {
     // Todos pueden acceder a apps y a su perfil

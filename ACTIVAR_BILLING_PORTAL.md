@@ -132,3 +132,4 @@ Cuando un usuario hace clic en "Gestionar suscripción" en tu app:
 
 ¡Listo! El Billing Portal estará activo y tus usuarios podrán gestionar sus suscripciones.
 
+
