@@ -73,3 +73,4 @@ Una vez desactivado JWT verification:
 - ✅ El estado se actualizará correctamente
 
 
+

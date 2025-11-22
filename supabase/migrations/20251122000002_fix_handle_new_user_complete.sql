@@ -56,3 +56,4 @@ CREATE POLICY "Allow profile creation for new users"
   TO authenticated
   WITH CHECK (true);
 
+

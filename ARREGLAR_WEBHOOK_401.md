@@ -58,3 +58,4 @@ Si después de desactivar JWT sigues viendo errores 401, verifica:
 3. Que el webhook esté activo en Stripe Dashboard
 
 
+
