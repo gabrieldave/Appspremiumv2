@@ -2,8 +2,10 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
 const SITE_URL = Deno.env.get('SITE_URL') || 'https://todossomostraders.com';
-// Usar dominio verificado de Resend o el de prueba
-const RESEND_FROM_EMAIL = Deno.env.get('RESEND_FROM_EMAIL') || 'onboarding@resend.dev';
+// Usar dominio verificado de Resend o el configurado
+// Si RESEND_FROM_EMAIL no está configurado, usar el dominio verificado mail.codextrader.tech
+const RESEND_FROM_EMAIL_RAW = Deno.env.get('RESEND_FROM_EMAIL') || 'noreply@mail.codextrader.tech';
+const RESEND_FROM_EMAIL = RESEND_FROM_EMAIL_RAW.trim();
 
 interface PasswordChangeEmailData {
   email: string;

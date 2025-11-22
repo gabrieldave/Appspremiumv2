@@ -4,8 +4,10 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
 const ADMIN_EMAIL = Deno.env.get('ADMIN_EMAIL') || 'admin@todossomostraders.com';
 const SITE_URL = Deno.env.get('SITE_URL') || 'https://todossomostraders.com';
-// Usar dominio verificado de Resend o el de prueba
-const RESEND_FROM_EMAIL = Deno.env.get('RESEND_FROM_EMAIL') || 'onboarding@resend.dev';
+// Usar dominio verificado de Resend o el configurado
+// Si RESEND_FROM_EMAIL no está configurado, usar el dominio verificado mail.codextrader.tech
+const RESEND_FROM_EMAIL_RAW = Deno.env.get('RESEND_FROM_EMAIL') || 'noreply@mail.codextrader.tech';
+const RESEND_FROM_EMAIL = RESEND_FROM_EMAIL_RAW.trim();
 
 interface WelcomeEmailData {
   email: string;
