@@ -126,6 +126,8 @@ export type Promotion = {
   description: string;
   image_url: string;
   video_url: string | null;
+  original_price: number | null;
+  offer_price: number | null;
   sort_order: number;
   is_active: boolean;
   created_at: string;

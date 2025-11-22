@@ -7,6 +7,8 @@ type FormData = {
   description: string;
   image_url: string;
   video_url: string;
+  original_price: string;
+  offer_price: string;
   sort_order: number;
   is_active: boolean;
   additional_images: string[]; // Array de URLs de imágenes adicionales
@@ -24,6 +26,8 @@ export function PromotionsManager() {
     description: '',
     image_url: '',
     video_url: '',
+    original_price: '',
+    offer_price: '',
     sort_order: 0,
     is_active: true,
     additional_images: ['', '', '', ''], // 4 campos para imágenes adicionales
@@ -74,6 +78,8 @@ export function PromotionsManager() {
         description: formData.description,
         image_url: formData.image_url,
         video_url: formData.video_url && formData.video_url.trim() !== '' ? formData.video_url.trim() : null,
+        original_price: formData.original_price && formData.original_price.trim() !== '' ? parseFloat(formData.original_price) : null,
+        offer_price: formData.offer_price && formData.offer_price.trim() !== '' ? parseFloat(formData.offer_price) : null,
         sort_order: formData.sort_order,
         is_active: formData.is_active,
       };
@@ -165,6 +171,8 @@ export function PromotionsManager() {
       description: promotion.description,
       image_url: promotion.image_url,
       video_url: promotion.video_url || '',
+      original_price: promotion.original_price?.toString() || '',
+      offer_price: promotion.offer_price?.toString() || '',
       sort_order: promotion.sort_order,
       is_active: promotion.is_active,
       additional_images: additionalImages.slice(0, 4),
@@ -199,6 +207,8 @@ export function PromotionsManager() {
       description: '',
       image_url: '',
       video_url: '',
+      original_price: '',
+      offer_price: '',
       sort_order: 0,
       is_active: true,
       additional_images: ['', '', '', ''],
@@ -382,6 +392,53 @@ export function PromotionsManager() {
               <p className="text-xs text-slate-500 mt-1">
                 Soporta enlaces de YouTube (youtube.com o youtu.be)
               </p>
+            </div>
+
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+              <p className="text-sm font-medium text-amber-800 mb-2">
+                ⚠️ Importante: Producto Separado
+              </p>
+              <p className="text-xs text-amber-700">
+                Estos productos son diferentes a la suscripción SaaS de $20/mes. Asegúrate de aclarar que son productos independientes.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Precio Original (USD)
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={formData.original_price}
+                  onChange={(e) => setFormData({ ...formData, original_price: e.target.value })}
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                  placeholder="99.99"
+                />
+                <p className="text-xs text-slate-500 mt-1">
+                  Precio antes del descuento
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Precio de Oferta (USD)
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={formData.offer_price}
+                  onChange={(e) => setFormData({ ...formData, offer_price: e.target.value })}
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                  placeholder="49.99"
+                />
+                <p className="text-xs text-slate-500 mt-1">
+                  Precio con descuento
+                </p>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
