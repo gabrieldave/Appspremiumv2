@@ -283,6 +283,10 @@ async function sendPurchaseEmails(customerId: string, session: Stripe.Checkout.S
     }
 
     // Enviar notificación al admin
+    console.log('📧 Preparando notificación al admin:');
+    console.log('  - ADMIN_EMAIL:', ADMIN_EMAIL);
+    console.log('  - ADMIN_EMAIL desde env:', Deno.env.get('ADMIN_EMAIL') || 'NO CONFIGURADA (usando default)');
+    
     const adminNotificationHtml = getAdminPurchaseNotificationTemplate({
       customerEmail,
       userId,
@@ -298,6 +302,7 @@ async function sendPurchaseEmails(customerId: string, session: Stripe.Checkout.S
       ...subscriptionData,
     });
 
+    console.log('📤 Enviando notificación al admin:', ADMIN_EMAIL);
     const adminResponse = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -314,9 +319,13 @@ async function sendPurchaseEmails(customerId: string, session: Stripe.Checkout.S
 
     if (!adminResponse.ok) {
       const error = await adminResponse.text();
-      console.error('Error enviando notificación al admin:', error);
+      console.error('❌ Error enviando notificación al admin:', error);
+      console.error('  - Status:', adminResponse.status);
+      console.error('  - StatusText:', adminResponse.statusText);
     } else {
-      console.info(`Notificación de compra enviada al admin: ${ADMIN_EMAIL}`);
+      const responseData = await adminResponse.json();
+      console.info(`✅ Notificación de compra enviada al admin: ${ADMIN_EMAIL}`);
+      console.info('  - Response ID:', responseData.id);
     }
   } catch (error) {
     console.error('Error enviando emails de compra:', error);
