@@ -287,9 +287,24 @@ export function AuthModal({ isOpen, onClose, initialMode = 'signin' }: AuthModal
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-semibold text-slate-700 mb-2">
-                  Contraseña
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label htmlFor="password" className="block text-sm font-semibold text-slate-700">
+                    Contraseña
+                  </label>
+                  {mode === 'signin' && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMode('forgot-password');
+                        setError('');
+                        setSuccess('');
+                      }}
+                      className="text-sm text-cyan-600 hover:text-cyan-700 font-medium underline"
+                    >
+                      ¿Olvidaste tu contraseña?
+                    </button>
+                  )}
+                </div>
                 <input
                   id="password"
                   type="password"
@@ -301,22 +316,6 @@ export function AuthModal({ isOpen, onClose, initialMode = 'signin' }: AuthModal
                   minLength={6}
                 />
               </div>
-
-              {mode === 'signin' && (
-                <div className="text-right">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMode('forgot-password');
-                      setError('');
-                      setSuccess('');
-                    }}
-                    className="text-sm text-cyan-600 hover:text-cyan-700 font-medium"
-                  >
-                    ¿Olvidaste tu contraseña?
-                  </button>
-                </div>
-              )}
 
               <button
                 type="submit"
