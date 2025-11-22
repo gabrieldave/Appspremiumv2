@@ -225,6 +225,52 @@ Deno.serve(async (req) => {
     } else {
       customerId = customer.customer_id;
 
+      // Verificar si el customer existe en Stripe (puede ser de test mode)
+      try {
+        await stripe.customers.retrieve(customerId);
+      } catch (stripeError: any) {
+        // Si el customer no existe o es de otro modo (test vs live), crear uno nuevo
+        if (stripeError.code === 'resource_missing' || 
+            stripeError.message?.includes('test mode') || 
+            stripeError.message?.includes('live mode')) {
+          console.log(`⚠️ Customer ${customerId} no existe o es de otro modo. Creando nuevo customer en modo actual...`);
+          
+          // Eliminar el customer de test de la base de datos
+          await supabase.from('stripe_customers').delete().eq('customer_id', customerId);
+          await supabase.from('stripe_subscriptions').delete().eq('customer_id', customerId);
+          
+          // Crear nuevo customer en el modo actual (live o test)
+          const newCustomer = await stripe.customers.create({
+            email: user.email,
+            metadata: {
+              userId: user.id,
+            },
+          });
+
+          console.log(`✅ Creado nuevo customer ${newCustomer.id} para usuario ${user.id}`);
+
+          const { error: createCustomerError } = await supabase.from('stripe_customers').insert({
+            user_id: user.id,
+            customer_id: newCustomer.id,
+          });
+
+          if (createCustomerError) {
+            console.error('Failed to save new customer information in the database', createCustomerError);
+            try {
+              await stripe.customers.del(newCustomer.id);
+            } catch (deleteError) {
+              console.error('Failed to delete Stripe customer after database error:', deleteError);
+            }
+            return corsResponse({ error: 'Failed to create customer mapping' }, 500);
+          }
+
+          customerId = newCustomer.id;
+        } else {
+          // Otro tipo de error, propagarlo
+          throw stripeError;
+        }
+      }
+
       if (mode === 'subscription') {
         // Verify subscription exists for existing customer
         const { data: subscription, error: getSubscriptionError } = await supabase
