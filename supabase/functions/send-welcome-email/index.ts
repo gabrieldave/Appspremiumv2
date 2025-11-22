@@ -2,7 +2,7 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
-const ADMIN_EMAIL = Deno.env.get('ADMIN_EMAIL') || 'admin@todossomostraders.com';
+const ADMIN_EMAIL = Deno.env.get('ADMIN_EMAIL') || 'todossomostr4ders@gmail.com';
 const SITE_URL = Deno.env.get('SITE_URL') || 'https://todossomostraders.com';
 // Usar dominio verificado de Resend o el configurado
 // Si RESEND_FROM_EMAIL no está configurado, usar el dominio verificado mail.codextrader.tech
