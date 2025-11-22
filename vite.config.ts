@@ -21,14 +21,14 @@ export default defineConfig({
         start_url: '/',
         icons: [
           {
-            src: 'https://pezisfaeecgjdguneuip.supabase.co/storage/v1/object/sign/icon/Analytics%20Mt4.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iMGE4OTE1Ni0zMjNjLTRlNmEtYWRkMi01MDE0NTU5MDNhYjkiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpY29uL0FuYWx5dGljcyBNdDQucG5nIiwiaWF0IjoxNzYzNjcxMzMwLCJleHAiOjE3OTUyMDczMzB9.RgEQ27v8RUhcBMI2eHkKsJuSmxajgtgkwToeZKc96CI',
+            src: 'https://pezisfaeecgjdguneuip.supabase.co/storage/v1/object/sign/icon/Logo.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iMGE4OTE1Ni0zMjNjLTRlNmEtYWRkMi01MDE0NTU5MDNhYjkiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpY29uL0xvZ28uanBnIiwiaWF0IjoxNzYzNzczMjI1LCJleHAiOjE3OTUzMDkyMjV9.J0ZUmK0mVuaA06QLjv7nqX41qbZEYPEDcKo2QxReiGA',
             sizes: '192x192',
-            type: 'image/png',
+            type: 'image/jpeg',
           },
           {
-            src: 'https://pezisfaeecgjdguneuip.supabase.co/storage/v1/object/sign/icon/Analytics%20Mt4.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iMGE4OTE1Ni0zMjNjLTRlNmEtYWRkMi01MDE0NTU5MDNhYjkiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpY29uL0FuYWx5dGljcyBNdDQucG5nIiwiaWF0IjoxNzYzNjcxMzMwLCJleHAiOjE3OTUyMDczMzB9.RgEQ27v8RUhcBMI2eHkKsJuSmxajgtgkwToeZKc96CI',
+            src: 'https://pezisfaeecgjdguneuip.supabase.co/storage/v1/object/sign/icon/Logo.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iMGE4OTE1Ni0zMjNjLTRlNmEtYWRkMi01MDE0NTU5MDNhYjkiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpY29uL0xvZ28uanBnIiwiaWF0IjoxNzYzNzczMjI1LCJleHAiOjE3OTUzMDkyMjV9.J0ZUmK0mVuaA06QLjv7nqX41qbZEYPEDcKo2QxReiGA',
             sizes: '512x512',
-            type: 'image/png',
+            type: 'image/jpeg',
           },
         ],
       },
