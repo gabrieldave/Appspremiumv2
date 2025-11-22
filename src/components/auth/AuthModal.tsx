@@ -35,22 +35,44 @@ export function AuthModal({ isOpen, onClose, initialMode = 'signin' }: AuthModal
 
       // Obtener la URL de redirección desde las variables de entorno o usar la URL actual
       const redirectUrl = import.meta.env.VITE_SITE_URL || window.location.origin;
+      const fullRedirectUrl = `${redirectUrl}/reset-password`;
       
       console.log('📧 Enviando solicitud de reset de contraseña:', {
         email: email.trim(),
-        redirectUrl,
+        redirectUrl: fullRedirectUrl,
+        origin: window.location.origin,
+        siteUrl: import.meta.env.VITE_SITE_URL,
       });
 
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: `${redirectUrl}/reset-password`,
+        redirectTo: fullRedirectUrl,
       });
 
       if (resetError) {
-        console.error('❌ Error al enviar reset de contraseña:', resetError);
-        setError('No se pudo enviar el email. Verifica que el correo sea correcto.');
+        console.error('❌ Error al enviar reset de contraseña:', {
+          error: resetError,
+          message: resetError.message,
+          status: (resetError as any)?.status,
+          email: email.trim(),
+          redirectUrl: fullRedirectUrl,
+        });
+        
+        // Mensajes de error más específicos
+        let errorMessage = 'No se pudo enviar el email. ';
+        if (resetError.message.includes('rate limit') || resetError.message.includes('too many')) {
+          errorMessage += 'Demasiados intentos. Por favor espera unos minutos antes de intentar de nuevo.';
+        } else if (resetError.message.includes('redirect')) {
+          errorMessage += 'Error de configuración. Por favor contacta al administrador.';
+        } else if (resetError.message.includes('email')) {
+          errorMessage += 'Verifica que el correo sea correcto y esté registrado.';
+        } else {
+          errorMessage += `Error: ${resetError.message}`;
+        }
+        setError(errorMessage);
       } else {
         console.log('✅ Email de reset enviado exitosamente');
-        setSuccess('Se ha enviado un enlace de recuperación a tu correo electrónico. Revisa tu bandeja de entrada.');
+        // Nota: Supabase siempre devuelve éxito por seguridad, incluso si el email no existe
+        setSuccess('Si el correo está registrado, recibirás un enlace de recuperación. Revisa tu bandeja de entrada y spam.');
         setEmail('');
       }
     } catch (err: any) {
