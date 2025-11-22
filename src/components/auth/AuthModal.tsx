@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { X, Loader2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, Loader2, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { supabase } from '../../lib/supabase';
 
 type AuthModalProps = {
   isOpen: boolean;
@@ -9,18 +10,61 @@ type AuthModalProps = {
 };
 
 export function AuthModal({ isOpen, onClose, initialMode = 'signin' }: AuthModalProps) {
-  const [mode, setMode] = useState<'signin' | 'signup'>(initialMode);
+  const [mode, setMode] = useState<'signin' | 'signup' | 'forgot-password'>(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const { signIn, signUp } = useAuth();
 
   if (!isOpen) return null;
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+    setLoading(true);
+
+    try {
+      if (!email) {
+        setError('Por favor ingresa tu correo electrónico');
+        setLoading(false);
+        return;
+      }
+
+      // Obtener la URL de redirección desde las variables de entorno o usar la URL actual
+      const redirectUrl = import.meta.env.VITE_SITE_URL || window.location.origin;
+      
+      console.log('📧 Enviando solicitud de reset de contraseña:', {
+        email: email.trim(),
+        redirectUrl,
+      });
+
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: `${redirectUrl}/reset-password`,
+      });
+
+      if (resetError) {
+        console.error('❌ Error al enviar reset de contraseña:', resetError);
+        setError('No se pudo enviar el email. Verifica que el correo sea correcto.');
+      } else {
+        console.log('✅ Email de reset enviado exitosamente');
+        setSuccess('Se ha enviado un enlace de recuperación a tu correo electrónico. Revisa tu bandeja de entrada.');
+        setEmail('');
+      }
+    } catch (err: any) {
+      console.error('❌ Error inesperado al resetear contraseña:', err);
+      setError(`Error inesperado: ${err?.message || 'Por favor intenta de nuevo.'}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     setLoading(true);
 
     try {
@@ -151,13 +195,34 @@ export function AuthModal({ isOpen, onClose, initialMode = 'signin' }: AuthModal
         </button>
 
         <div className="p-8">
+          {mode === 'forgot-password' && (
+            <button
+              onClick={() => {
+                setMode('signin');
+                setError('');
+                setSuccess('');
+                setEmail('');
+              }}
+              className="mb-4 flex items-center text-slate-600 hover:text-slate-900 transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5 mr-2" />
+              Volver a iniciar sesión
+            </button>
+          )}
+
           <h2 className="text-3xl font-bold text-slate-900 mb-2">
-            {mode === 'signin' ? 'Bienvenido de Nuevo' : 'Crear Cuenta'}
+            {mode === 'signin' 
+              ? 'Bienvenido de Nuevo' 
+              : mode === 'signup' 
+              ? 'Crear Cuenta' 
+              : 'Recuperar Contraseña'}
           </h2>
           <p className="text-slate-600 mb-8">
             {mode === 'signin'
               ? 'Accede a tu portal premium'
-              : 'Comienza tu suscripción premium'}
+              : mode === 'signup'
+              ? 'Comienza tu suscripción premium'
+              : 'Te enviaremos un enlace para restablecer tu contraseña'}
           </p>
 
           {error && (
@@ -166,67 +231,126 @@ export function AuthModal({ isOpen, onClose, initialMode = 'signin' }: AuthModal
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label htmlFor="email" className="block text-sm font-semibold text-slate-700 mb-2">
-                Correo Electrónico
-              </label>
-              <input
-                id="email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors"
-                placeholder="tu@email.com"
-              />
+          {success && (
+            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
+              {success}
             </div>
+          )}
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-semibold text-slate-700 mb-2">
-                Contraseña
-              </label>
-              <input
-                id="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors"
-                placeholder="••••••••"
-                minLength={6}
-              />
-            </div>
+          {mode === 'forgot-password' ? (
+            <form onSubmit={handleForgotPassword} className="space-y-6">
+              <div>
+                <label htmlFor="forgot-email" className="block text-sm font-semibold text-slate-700 mb-2">
+                  Correo Electrónico
+                </label>
+                <input
+                  id="forgot-email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors"
+                  placeholder="tu@email.com"
+                />
+              </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 disabled:from-slate-400 disabled:to-slate-400 text-white py-3 px-6 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Procesando...
-                </>
-              ) : (
-                mode === 'signin' ? 'Iniciar Sesión' : 'Crear Cuenta'
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 disabled:from-slate-400 disabled:to-slate-400 text-white py-3 px-6 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Enviando...
+                  </>
+                ) : (
+                  'Enviar Enlace de Recuperación'
+                )}
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div>
+                <label htmlFor="email" className="block text-sm font-semibold text-slate-700 mb-2">
+                  Correo Electrónico
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors"
+                  placeholder="tu@email.com"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="password" className="block text-sm font-semibold text-slate-700 mb-2">
+                  Contraseña
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors"
+                  placeholder="••••••••"
+                  minLength={6}
+                />
+              </div>
+
+              {mode === 'signin' && (
+                <div className="text-right">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMode('forgot-password');
+                      setError('');
+                      setSuccess('');
+                    }}
+                    className="text-sm text-cyan-600 hover:text-cyan-700 font-medium"
+                  >
+                    ¿Olvidaste tu contraseña?
+                  </button>
+                </div>
               )}
-            </button>
-          </form>
 
-          <div className="mt-6 text-center">
-            <button
-              onClick={() => {
-                setMode(mode === 'signin' ? 'signup' : 'signin');
-                setError('');
-              }}
-              className="text-cyan-600 hover:text-cyan-700 font-medium"
-            >
-              {mode === 'signin'
-                ? '¿No tienes cuenta? Regístrate'
-                : '¿Ya tienes cuenta? Inicia sesión'}
-            </button>
-          </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 disabled:from-slate-400 disabled:to-slate-400 text-white py-3 px-6 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Procesando...
+                  </>
+                ) : (
+                  mode === 'signin' ? 'Iniciar Sesión' : 'Crear Cuenta'
+                )}
+              </button>
+            </form>
+          )}
+
+          {mode !== 'forgot-password' && (
+            <div className="mt-6 text-center">
+              <button
+                onClick={() => {
+                  setMode(mode === 'signin' ? 'signup' : 'signin');
+                  setError('');
+                  setSuccess('');
+                }}
+                className="text-cyan-600 hover:text-cyan-700 font-medium"
+              >
+                {mode === 'signin'
+                  ? '¿No tienes cuenta? Regístrate'
+                  : '¿Ya tienes cuenta? Inicia sesión'}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
