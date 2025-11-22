@@ -32,7 +32,7 @@ export function Navigation({ onGetStarted }: NavigationProps) {
               rel="noopener noreferrer"
               className="text-slate-700 hover:text-cyan-600 font-medium transition-colors"
             >
-              Soporte
+              Contáctame
             </a>
             <a
               href="#beneficios"
@@ -81,7 +81,7 @@ export function Navigation({ onGetStarted }: NavigationProps) {
                 onClick={() => setMobileMenuOpen(false)}
                 className="text-slate-700 hover:text-cyan-600 font-medium transition-colors px-2 py-2"
               >
-                Soporte
+                Contáctame
               </a>
               <a
                 href="#beneficios"
