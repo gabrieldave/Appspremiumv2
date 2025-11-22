@@ -103,3 +103,4 @@ Para verificar que todas las variables están configuradas:
 
 **Última actualización**: Después de identificar el error de Stripe Secret Key faltante
 
+

@@ -11,3 +11,4 @@
 ALTER TABLE premium_apps 
 ADD COLUMN IF NOT EXISTS web_app_url text;
 
+

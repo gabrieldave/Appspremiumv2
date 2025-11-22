@@ -96,3 +96,4 @@ Para que los correos se envíen, debes tener configurado:
 - Si hay un error al enviar el correo, no afecta el procesamiento del pago
 - Los errores se registran en los logs del webhook
 
+

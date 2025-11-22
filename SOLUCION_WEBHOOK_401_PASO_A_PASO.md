@@ -72,3 +72,4 @@ Una vez desactivado JWT verification:
 - ✅ Los emails se enviarán después de cada compra
 - ✅ El estado se actualizará correctamente
 
+

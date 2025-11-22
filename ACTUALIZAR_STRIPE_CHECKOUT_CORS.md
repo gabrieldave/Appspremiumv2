@@ -60,3 +60,4 @@ El código ahora:
 
 **Última actualización**: Corrección de error de CORS en stripe-checkout
 
+

@@ -161,3 +161,4 @@ const response = await fetch(`${supabaseUrl}/functions/v1/stripe-checkout`, {
 
 **Última actualización**: Análisis detallado del error de CORS persistente
 
+

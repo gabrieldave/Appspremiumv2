@@ -57,3 +57,4 @@ Si después de desactivar JWT sigues viendo errores 401, verifica:
 2. Que `STRIPE_WEBHOOK_SECRET` esté configurado correctamente en Supabase Secrets
 3. Que el webhook esté activo en Stripe Dashboard
 
+
