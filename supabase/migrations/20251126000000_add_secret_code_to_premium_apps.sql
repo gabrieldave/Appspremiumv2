@@ -11,3 +11,5 @@
 ALTER TABLE premium_apps 
 ADD COLUMN IF NOT EXISTS secret_code text;
 
+
+
