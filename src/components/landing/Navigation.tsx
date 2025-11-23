@@ -10,6 +10,8 @@ export function Navigation({ onGetStarted }: NavigationProps) {
   
   // WhatsApp de soporte
   const supportWhatsApp = 'https://wa.me/5215645530082';
+  // Enlace a asesorías 1a1
+  const asesoriasUrl = 'https://asesorias.todossomostraders.com/';
 
   return (
     <nav className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
@@ -51,6 +53,14 @@ export function Navigation({ onGetStarted }: NavigationProps) {
               className="text-slate-700 hover:text-cyan-600 font-medium transition-colors"
             >
               Promociones
+            </a>
+            <a
+              href={asesoriasUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-slate-700 hover:text-cyan-600 font-medium transition-colors"
+            >
+              Asesorías 1a1
             </a>
             <button
               onClick={onGetStarted}
@@ -103,6 +113,15 @@ export function Navigation({ onGetStarted }: NavigationProps) {
                 className="text-slate-700 hover:text-cyan-600 font-medium transition-colors px-2 py-2"
               >
                 Promociones
+              </a>
+              <a
+                href={asesoriasUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-slate-700 hover:text-cyan-600 font-medium transition-colors px-2 py-2"
+              >
+                Asesorías 1a1
               </a>
               <button
                 onClick={() => {
