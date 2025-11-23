@@ -9,6 +9,8 @@ type FormData = {
   video_url: string | null;
   download_url: string;
   web_app_url: string | null;
+  secret_code: string | null;
+  secret_notes: string | null;
   category: string;
   sort_order: number;
   is_active: boolean;
@@ -28,6 +30,8 @@ export function AppsManager() {
     video_url: null,
     download_url: '',
     web_app_url: null,
+    secret_code: null,
+    secret_notes: null,
     category: '',
     sort_order: 0,
     is_active: true,
@@ -59,11 +63,13 @@ export function AppsManager() {
     setMessage(null);
 
     try {
-      // Preparar datos para insertar/actualizar (convertir string vacío a null para video_url y web_app_url)
+      // Preparar datos para insertar/actualizar (convertir string vacío a null para video_url, web_app_url, secret_code y secret_notes)
       const dataToSave = {
         ...formData,
         video_url: formData.video_url && formData.video_url.trim() !== '' ? formData.video_url.trim() : null,
         web_app_url: formData.web_app_url && formData.web_app_url.trim() !== '' ? formData.web_app_url.trim() : null,
+        secret_code: formData.secret_code && formData.secret_code.trim() !== '' ? formData.secret_code.trim() : null,
+        secret_notes: formData.secret_notes && formData.secret_notes.trim() !== '' ? formData.secret_notes.trim() : null,
       };
 
       if (editingId) {
@@ -119,6 +125,8 @@ export function AppsManager() {
       video_url: app.video_url || null,
       download_url: app.download_url,
       web_app_url: app.web_app_url || null,
+      secret_code: app.secret_code || null,
+      secret_notes: app.secret_notes || null,
       category: app.category,
       sort_order: app.sort_order,
       is_active: app.is_active,
@@ -156,6 +164,8 @@ export function AppsManager() {
       video_url: null,
       download_url: '',
       web_app_url: null,
+      secret_code: null,
+      secret_notes: null,
       category: '',
       sort_order: 0,
       is_active: true,
@@ -340,6 +350,38 @@ export function AppsManager() {
               />
               <p className="mt-1 text-sm text-slate-500">
                 Si se proporciona, se mostrará un botón "APP WEB" para usuarios sin Android
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
+                Código Secreto (opcional)
+              </label>
+              <input
+                type="text"
+                value={formData.secret_code || ''}
+                onChange={(e) => setFormData({ ...formData, secret_code: e.target.value || null })}
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 font-mono"
+                placeholder="ABC123XYZ"
+              />
+              <p className="mt-1 text-sm text-slate-500">
+                Código secreto que se mostrará a usuarios con suscripción activa. Si se deja vacío, no se mostrará ningún código.
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
+                Notas Secretas (opcional)
+              </label>
+              <textarea
+                value={formData.secret_notes || ''}
+                onChange={(e) => setFormData({ ...formData, secret_notes: e.target.value || null })}
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                rows={4}
+                placeholder="Notas secretas que se mostrarán a usuarios con suscripción activa..."
+              />
+              <p className="mt-1 text-sm text-slate-500">
+                Notas secretas que se mostrarán junto con el código secreto a usuarios con suscripción activa. Si se deja vacío, no se mostrarán notas.
               </p>
             </div>
 

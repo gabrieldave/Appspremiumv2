@@ -103,6 +103,8 @@ export type PremiumApp = {
   video_url: string | null;
   download_url: string;
   web_app_url: string | null;
+  secret_code: string | null;
+  secret_notes: string | null;
   category: string;
   is_active: boolean;
   sort_order: number;

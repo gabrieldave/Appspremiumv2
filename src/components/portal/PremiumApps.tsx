@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Grid, Loader2, ArrowLeft, Lock, Download, Globe } from 'lucide-react';
+import { Grid, Loader2, ArrowLeft, Lock, Download, Globe, Key, Copy, Check, FileText } from 'lucide-react';
 import { supabase, PremiumApp } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -116,9 +116,18 @@ type AppDetailProps = {
 
 function AppDetail({ app, onBack }: AppDetailProps) {
   const { profile } = useAuth();
+  const [copied, setCopied] = useState(false);
   
   // Todos pueden VER Apps Premium, pero solo suscriptores pueden DESCARGAR
   const canDownload = profile?.subscription_status === 'active' || profile?.is_admin === true;
+  
+  const handleCopyCode = () => {
+    if (app.secret_code) {
+      navigator.clipboard.writeText(app.secret_code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
   
   const getYouTubeEmbedUrl = (url: string) => {
     // Manejar diferentes formatos de YouTube:
@@ -228,6 +237,57 @@ function AppDetail({ app, onBack }: AppDetailProps) {
                     <Globe className="w-5 h-5" />
                     APP WEB
                   </a>
+                </div>
+              )}
+              {app.secret_code && (
+                <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border-2 border-purple-200 rounded-lg p-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Key className="w-6 h-6 text-purple-600" />
+                    <h4 className="font-semibold text-purple-900 text-lg">Código Secreto</h4>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 bg-white border-2 border-purple-300 rounded-lg px-4 py-3">
+                      <code className="text-2xl font-bold text-purple-700 tracking-wider">
+                        {app.secret_code}
+                      </code>
+                    </div>
+                    <button
+                      onClick={handleCopyCode}
+                      className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition-all"
+                      title="Copiar código"
+                    >
+                      {copied ? (
+                        <>
+                          <Check className="w-5 h-5" />
+                          Copiado
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-5 h-5" />
+                          Copiar
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  <p className="mt-3 text-sm text-purple-700">
+                    Usa este código para desbloquear funcionalidades adicionales en la aplicación.
+                  </p>
+                </div>
+              )}
+              {app.secret_notes && (
+                <div className="bg-gradient-to-r from-indigo-50 to-blue-50 border-2 border-indigo-200 rounded-lg p-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <FileText className="w-6 h-6 text-indigo-600" />
+                    <h4 className="font-semibold text-indigo-900 text-lg">Notas Secretas</h4>
+                  </div>
+                  <div className="bg-white border-2 border-indigo-300 rounded-lg px-4 py-4">
+                    <div className="text-indigo-800 whitespace-pre-line leading-relaxed">
+                      {app.secret_notes}
+                    </div>
+                  </div>
+                  <p className="mt-3 text-sm text-indigo-700">
+                    Información exclusiva para suscriptores premium.
+                  </p>
                 </div>
               )}
             </div>
