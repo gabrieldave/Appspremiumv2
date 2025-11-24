@@ -1,10 +1,20 @@
 import React from 'react';
-import { stripeProducts } from '../stripe-config';
 import { SubscriptionCard } from '../components/SubscriptionCard';
 import { useSubscription } from '../hooks/useSubscription';
+import { useStripePrices } from '../hooks/useStripePrices';
+import { Loader2 } from 'lucide-react';
 
 export function PricingPage() {
   const { subscription } = useSubscription();
+  const { prices, loading } = useStripePrices();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-900 py-16 px-4 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-cyan-600 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-900 py-16 px-4">
@@ -19,11 +29,19 @@ export function PricingPage() {
         </div>
 
         <div className="grid md:grid-cols-1 gap-8 max-w-md mx-auto">
-          {stripeProducts.map((product) => (
+          {prices.map((price) => (
             <SubscriptionCard
-              key={product.priceId}
-              product={product}
-              isCurrentPlan={subscription?.price_id === product.priceId && subscription?.subscription_status === 'active'}
+              key={price.price_id}
+              product={{
+                priceId: price.price_id,
+                name: price.name,
+                description: price.description,
+                mode: price.mode,
+                price: price.price,
+                currency: price.currency,
+                currencySymbol: price.currency_symbol,
+              }}
+              isCurrentPlan={subscription?.price_id === price.price_id && subscription?.subscription_status === 'active'}
             />
           ))}
         </div>
