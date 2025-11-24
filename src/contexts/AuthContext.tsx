@@ -11,6 +11,7 @@ type AuthContextType = {
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   updatePassword: (newPassword: string) => Promise<{ error: Error | null }>;
+  resetPassword: (email: string) => Promise<{ error: Error | null }>;
   refreshProfile: () => Promise<void>;
 };
 
@@ -269,6 +270,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const resetPassword = async (email: string) => {
+    try {
+      // Usar la URL del sitio configurada o la URL actual
+      const siteUrl = import.meta.env.VITE_SITE_URL || window.location.origin;
+      const redirectUrl = `${siteUrl}/reset-password`;
+      
+      console.log('📧 Enviando email de recuperación:', {
+        email: email.trim(),
+        redirectUrl,
+      });
+      
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: redirectUrl,
+      });
+      
+      if (error) {
+        console.error('❌ Error en resetPassword:', {
+          message: error.message,
+          status: (error as any).status,
+          name: error.name,
+        });
+      } else {
+        console.log('✅ Email de recuperación enviado a:', email);
+      }
+      
+      return { error };
+    } catch (error: any) {
+      console.error('❌ Excepción en resetPassword:', error);
+      return { error: error as Error };
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -280,6 +313,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signIn,
         signOut,
         updatePassword,
+        resetPassword,
         refreshProfile,
       }}
     >
