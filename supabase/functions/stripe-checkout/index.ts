@@ -303,7 +303,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // create Checkout Session
+    // create Checkout Session con configuración internacional
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       payment_method_types: ['card'],
@@ -316,6 +316,15 @@ Deno.serve(async (req) => {
       mode,
       success_url,
       cancel_url,
+      // Configuración para pagos internacionales
+      billing_address_collection: 'auto', // Recopila dirección de facturación automáticamente (necesario para algunos países)
+      locale: 'auto', // Detecta automáticamente el idioma del cliente
+      // Permite que Stripe maneje la conversión de moneda automáticamente si está habilitada en el dashboard
+      payment_method_options: {
+        card: {
+          request_three_d_secure: 'automatic', // Autenticación 3D Secure automática para mayor seguridad internacional
+        },
+      },
     });
 
     console.log(`Created checkout session ${session.id} for customer ${customerId}`);
