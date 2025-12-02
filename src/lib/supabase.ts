@@ -101,7 +101,7 @@ export type PremiumApp = {
   description: string;
   image_url: string;
   video_url: string | null;
-  download_url: string;
+  download_url: string | null;
   web_app_url: string | null;
   secret_code: string | null;
   secret_notes: string | null;

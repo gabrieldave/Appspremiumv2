@@ -7,7 +7,7 @@ type FormData = {
   description: string;
   image_url: string;
   video_url: string | null;
-  download_url: string;
+  download_url: string | null;
   web_app_url: string | null;
   secret_code: string | null;
   secret_notes: string | null;
@@ -28,7 +28,7 @@ export function AppsManager() {
     description: '',
     image_url: '',
     video_url: null,
-    download_url: '',
+    download_url: null,
     web_app_url: null,
     secret_code: null,
     secret_notes: null,
@@ -63,10 +63,11 @@ export function AppsManager() {
     setMessage(null);
 
     try {
-      // Preparar datos para insertar/actualizar (convertir string vacío a null para video_url, web_app_url, secret_code y secret_notes)
+      // Preparar datos para insertar/actualizar (convertir string vacío a null para video_url, download_url, web_app_url, secret_code y secret_notes)
       const dataToSave = {
         ...formData,
         video_url: formData.video_url && formData.video_url.trim() !== '' ? formData.video_url.trim() : null,
+        download_url: formData.download_url && formData.download_url.trim() !== '' ? formData.download_url.trim() : null,
         web_app_url: formData.web_app_url && formData.web_app_url.trim() !== '' ? formData.web_app_url.trim() : null,
         secret_code: formData.secret_code && formData.secret_code.trim() !== '' ? formData.secret_code.trim() : null,
         secret_notes: formData.secret_notes && formData.secret_notes.trim() !== '' ? formData.secret_notes.trim() : null,
@@ -123,7 +124,7 @@ export function AppsManager() {
       description: app.description,
       image_url: app.image_url,
       video_url: app.video_url || null,
-      download_url: app.download_url,
+      download_url: app.download_url || null,
       web_app_url: app.web_app_url || null,
       secret_code: app.secret_code || null,
       secret_notes: app.secret_notes || null,
@@ -162,7 +163,7 @@ export function AppsManager() {
       description: '',
       image_url: '',
       video_url: null,
-      download_url: '',
+      download_url: null,
       web_app_url: null,
       secret_code: null,
       secret_notes: null,
@@ -325,13 +326,12 @@ export function AppsManager() {
 
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">
-                URL de Descarga * (ZIP del archivo)
+                URL de Descarga (ZIP del archivo - opcional)
               </label>
               <input
                 type="url"
-                required
-                value={formData.download_url}
-                onChange={(e) => setFormData({ ...formData, download_url: e.target.value })}
+                value={formData.download_url || ''}
+                onChange={(e) => setFormData({ ...formData, download_url: e.target.value || null })}
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                 placeholder="https://tudominio.com/archivos/app.zip"
               />

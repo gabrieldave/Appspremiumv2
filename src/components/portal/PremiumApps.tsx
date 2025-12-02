@@ -213,19 +213,21 @@ function AppDetail({ app, onBack }: AppDetailProps) {
 
           {canDownload ? (
             <div className="space-y-4">
-              <div>
-                <a
-                  href={app.download_url}
-                  download
-                  className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 transform hover:scale-105 shadow-xl"
-                >
-                  <Download className="w-5 h-5" />
-                  Descargar Aplicación
-                </a>
-                <p className="mt-2 text-sm text-slate-600">
-                  Exclusivo de <strong>Android</strong>
-                </p>
-              </div>
+              {app.download_url && (
+                <div>
+                  <a
+                    href={app.download_url}
+                    download
+                    className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 transform hover:scale-105 shadow-xl"
+                  >
+                    <Download className="w-5 h-5" />
+                    Descargar Aplicación
+                  </a>
+                  <p className="mt-2 text-sm text-slate-600">
+                    Exclusivo de <strong>Android</strong>
+                  </p>
+                </div>
+              )}
               {app.web_app_url && (
                 <div>
                   <a
