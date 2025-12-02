@@ -329,7 +329,7 @@ export function AppsManager() {
                 URL de Descarga (ZIP del archivo - opcional)
               </label>
               <input
-                type="url"
+                type="text"
                 value={formData.download_url || ''}
                 onChange={(e) => setFormData({ ...formData, download_url: e.target.value || null })}
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
